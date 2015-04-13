@@ -1,0 +1,16 @@
+{
+  "name": "sql_login_middleware",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dan Breczinski <pt2323@gmail.com> (https://github.com/danpaul)",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.12.3",
+    "underscore": "^1.8.3",
+    "sql_login": "git://github.com/danpaul/sql_login"
+  }
+}
