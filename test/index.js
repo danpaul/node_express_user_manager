@@ -1,25 +1,38 @@
 var app = require('express')()
 
-var SqlLoginMiddleware = require('../index')
+var knex = require('knex')
+var bodyParser = require('body-parser')
+var session = require('express-session')
+var flash = require('connect-flash')
 
-var TEST_FORM = '' +
-    '<!HTML>' +
-    '<html>' +
-    '    <body>' +
-    '        <form>' +
-    '            Email:' +
-    '            <input type="text" name="email" />' +
-    '            Password:' +
-    '            <input type="text" name="password" />' +
-    '        </form>' +
-    '    </body>' +
-    '</html>';
+var dbCreds = {
+    client: 'mysql',
+    connection: {
+        host: 'localhost',
+        user: 'root',
+        password: 'root',
+        database: 'sql_login',
+        port:  8889
+    }
+}
 
-app.use('/', require('../index')())
+var knex = require('knex')(dbCreds)
 
-app.get('/test-form', function(req, res){
-    res.send(TEST_FORM)
+var sqlLoginMiddleware = require('../index')({
+    rootUrl: 'http://localhost:3000',
+    'knex': knex
 })
+
+app.use(session({
+    secret: 'super-secret',
+    resave: true,
+    saveUninitialized: true
+}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(flash())
+
+app.use('/', sqlLoginMiddleware)
 
 /*******************************************************************************
 
@@ -28,9 +41,8 @@ app.get('/test-form', function(req, res){
 *******************************************************************************/
 
 var server = app.listen(3000, function () {
+    var host = server.address().address
+    var port = server.address().port
 
-  var host = server.address().address
-  var port = server.address().port
-
-  console.log("Example app listening at http://%s:%s", host, port)
+    console.log("Example app listening at http://%s:%s", host, port)
 })

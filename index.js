@@ -5,9 +5,7 @@
 *******************************************************************************/
 
 var _ = require('underscore')
-// var jsmo = require('jsmo')
-
-// var SqlLogin = require('sql_login')
+var SqlLogin = require('sql_login')
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -23,8 +21,11 @@ var handleDbResponse = function(err, errorMessage, res){
 }
 
 var defaults = {
-    headerView: function(){},
-    footerView: function(){}
+    headerView: function(){ return '' },
+    footerView: function(){ return '' },
+    rootUrl: '/',
+    tableName: 'sql_login',
+    knex: null
 }
 
 /*******************************************************************************
@@ -50,12 +51,16 @@ module.exports = function(settings){
         }
     })
 
+    if( self.knex === null ){
+        throw(new Error('sql_login_middleware requires a knex object'))
+    }
 
-    // see sql_comment docs for settings
-    // self.sqlComment = new SqlComment(settings, function(err){
-    //     if( err ){ throw(err) }
-    // })
-
+    self.sqlLogin = new SqlLogin({
+        'knex': self.knex,
+        'tableName': self.tableName
+    }, function(err){
+        if( err ){ throw(err) }
+    })
 
 /*******************************************************************************
 
@@ -63,9 +68,43 @@ module.exports = function(settings){
 
 *******************************************************************************/
 
-    app.get('/', function(req, res){
-        res.send(require('./views/sign_in_form'))
+    app.get('/login', function(req, res){
+        var body = require('./views/login_form')({rootUrl: self.rootUrl})
+        res.send(self.getHtml(body))
     })
+
+    app.post('/login', function(req, res){
+        // res.send(JSON.stringify(req.body))
+
+        var email = req.body.email ? req.body.email : ''
+        var password = req.body.password ? req.body.password : ''
+
+        self.sqlLogin.checkPassword({
+            'email': email,
+            'password': password
+        }, function(err, response){
+res.send(JSON.stringify(response))
+            // if( err ){
+            //     callback(err);
+            //     return;
+            // }
+        })
+    })
+
+    app.get('/register', function(req, res){
+        var body = require('./views/register_form')({rootUrl: self.rootUrl})
+        res.send(self.getHtml(body))
+    })
+
+/*******************************************************************************
+
+                    HELPER FUNCTIONS
+
+*******************************************************************************/
+
+    self.getHtml = function(body){
+        return self.headerView() + body + self.footerView()
+    }
 
     // app.get('/test', function(req, res){
     //     res.send('this is only a test')
