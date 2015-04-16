@@ -4,8 +4,14 @@
 
 *******************************************************************************/
 
-var _ = require('underscore')
-var SqlLogin = require('sql_login')
+var STATUS_SUCCESS = 'success',
+    STATUS_ERROR = 'error',
+    STATUS_FAILURE = 'failure',
+    ERROR_MESSAGE_SYSTEM = 'A system error occurred. Please try again.',
+    FAILURE_MESSAGE_LOGIN = 'Username or email is not correct.';
+
+var _ = require('underscore'),
+        SqlLogin = require('sql_login')
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -26,6 +32,16 @@ var defaults = {
     rootUrl: '/',
     tableName: 'sql_login',
     knex: null
+}
+
+// messages used for field level errors
+// message used for general message
+var getReponseObject = function(){
+    return {
+        status: STATUS_SUCCESS,
+        messages: {},
+        message: ''
+    }
 }
 
 /*******************************************************************************
@@ -74,20 +90,22 @@ module.exports = function(settings){
     })
 
     app.post('/login', function(req, res){
-        // res.send(JSON.stringify(req.body))
-
-        var email = req.body.email ? req.body.email : ''
-        var password = req.body.password ? req.body.password : ''
+        var email = req.body.email ? req.body.email : '',
+            password = req.body.password ? req.body.password : '',
+            responseObject = getReponseObject()
 
         self.sqlLogin.checkPassword({
             'email': email,
             'password': password
         }, function(err, response){
-res.send(JSON.stringify(response))
-            // if( err ){
-            //     callback(err);
-            //     return;
-            // }
+            if( err ){
+                responseObject.status = STATUS_ERROR
+                responseObject.message = ERROR_MESSAGE_SYSTEM
+            } else if( response.status !== STATUS_SUCCESS ){
+                responseObject.status = STATUS_FAILURE
+                responseObject.messages.email = FAILURE_MESSAGE_LOGIN
+            }
+            res.json(responseObject)
         })
     })
 
