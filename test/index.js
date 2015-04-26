@@ -5,6 +5,17 @@ var bodyParser = require('body-parser')
 var session = require('express-session')
 var flash = require('connect-flash')
 
+// CORS middleware
+// http://stackoverflow.com/questions/7067966/how-to-allow-cors-in-express-node-js
+var allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+    next();
+}
+
+
 var dbCreds = {
     client: 'mysql',
     connection: {
@@ -31,6 +42,7 @@ app.use(session({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(flash())
+app.use(allowCrossDomain)
 
 app.use('/', sqlLoginMiddleware)
 
@@ -40,7 +52,7 @@ app.use('/', sqlLoginMiddleware)
 
 *******************************************************************************/
 
-var server = app.listen(3000, function () {
+var server = app.listen(3010, function () {
     var host = server.address().address
     var port = server.address().port
 

@@ -8,7 +8,10 @@ var STATUS_SUCCESS = 'success',
     STATUS_ERROR = 'error',
     STATUS_FAILURE = 'failure',
     ERROR_MESSAGE_SYSTEM = 'A system error occurred. Please try again.',
-    FAILURE_MESSAGE_LOGIN = 'Username or email is not correct.';
+    FAILURE_MESSAGE_EMAIL = 'The email is not valid.',
+    FAILURE_MESSAGE_LOGIN = 'Username or email is not correct.',
+    FAILURE_MESSAGE_PASSWORD = 'The password is not valid.';
+
 
 var _ = require('underscore'),
         SqlLogin = require('sql_login')
@@ -52,8 +55,10 @@ var getReponseObject = function(){
 
 module.exports = function(settings){
 
-    var self = this
-    var app = require('express')()
+    var self = this;
+    var app = require('express')();
+
+    self.passwordMinLength = 8;
 
     if( typeof(settings) === 'undefined' ){
         settings = {}
@@ -114,11 +119,51 @@ module.exports = function(settings){
         res.send(self.getHtml(body))
     })
 
+    app.post('/register', function(req, res){
+        var email = req.body.email ? req.body.email : '';
+        var password = req.body.password ? req.body.password : '';
+        var responseObject = getReponseObject();
+
+        if( !self.emailIsValid(email) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_EMAIL;
+            res.json(responseObject);
+            return;
+        }
+
+        if( !self.passwordIsValid(password) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_PASSWORD;
+            res.json(responseObject);
+            return;
+        }
+
+        sqlLogin.create({'email': email, 'password': password},
+                        function(err, response){
+            if( err ){
+                responseObject.status = STATUS_ERROR;
+                responseObject.message = ERROR_MESSAGE_SYSTEM;
+            }
+            res.json(response);
+        });
+    })
+
 /*******************************************************************************
 
                     HELPER FUNCTIONS
 
 *******************************************************************************/
+    // http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
+    self.emailIsValid = function(email){
+        var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        return re.test(email);
+    }
+
+    self.passwordIsValid = function(password){
+        if( !password ){ return false; }
+        if( password.length < self.passwordMinLength ){ return false; }
+        return true;
+    }
 
     self.getHtml = function(body){
         return self.headerView() + body + self.footerView()
