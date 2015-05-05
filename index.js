@@ -37,12 +37,10 @@ var defaults = {
     knex: null
 }
 
-// messages used for field level errors
-// message used for general message
+// message used for error message
 var getReponseObject = function(){
     return {
         status: STATUS_SUCCESS,
-        messages: {},
         message: ''
     }
 }
@@ -108,7 +106,7 @@ module.exports = function(settings){
                 responseObject.message = ERROR_MESSAGE_SYSTEM
             } else if( response.status !== STATUS_SUCCESS ){
                 responseObject.status = STATUS_FAILURE
-                responseObject.messages.email = FAILURE_MESSAGE_LOGIN
+                responseObject.message = FAILURE_MESSAGE_LOGIN
             }
             res.json(responseObject)
         })
@@ -242,5 +240,5 @@ module.exports = function(settings){
     //     })
     // })
 
-    return app
+    return app;
 }
