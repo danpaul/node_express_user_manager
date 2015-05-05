@@ -34,6 +34,7 @@ var sqlLoginMiddleware = require('../index')({
     'knex': knex
 })
 
+app.use(require('cookie-parser')('super-secret')); 
 app.use(session({
     secret: 'super-secret',
     resave: true,

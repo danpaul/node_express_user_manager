@@ -9,7 +9,9 @@
   "author": "Dan Breczinski <pt2323@gmail.com> (https://github.com/danpaul)",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.12.3",
     "express": "^4.12.3",
+    "express-session": "^1.11.1",
     "sql_login": "git://github.com/danpaul/sql_login",
     "underscore": "^1.8.3",
     "validator": "^3.37.0"
