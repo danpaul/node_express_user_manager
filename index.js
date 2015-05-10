@@ -32,7 +32,7 @@ var handleDbResponse = function(err, errorMessage, res){
 var defaults = {
     headerView: function(){ return '' },
     footerView: function(){ return '' },
-    rootUrl: '/',
+    // rootUrl: '/',
     tableName: 'sql_login',
     knex: null
 }
@@ -41,7 +41,8 @@ var defaults = {
 var getReponseObject = function(){
     return {
         status: STATUS_SUCCESS,
-        message: ''
+        message: '',
+        data: {}
     }
 }
 
@@ -98,28 +99,22 @@ module.exports = function(settings){
 
 *******************************************************************************/
 
-    app.get('/login', function(req, res){
-        var body = require('./views/login_form')({rootUrl: self.rootUrl})
-        res.send(self.getHtml(body))
-    })
+    // app.get('/login', function(req, res){
+    //     var body = require('./views/login_form')({rootUrl: self.rootUrl})
+    //     res.send(self.getHtml(body))
+    // })
 
     app.get('/is-logged-in', function(req, res){
         var sess = req.session;
-
-console.log(sess)
-// sess.foo = 'bar'
         if( sess && sess.isLoggedIn ){
             res.json(true);
         } else {
             res.json(false);
         }
-
     })
 
     app.post('/login', function(req, res){
-var sess = req.session;
-sess.baz = 'bat';
-console.log(sess)
+
         var email = req.body.email ? req.body.email : '',
             password = req.body.password ? req.body.password : '',
             responseObject = getReponseObject()
@@ -135,11 +130,13 @@ console.log(sess)
                 responseObject.status = STATUS_FAILURE
                 responseObject.message = FAILURE_MESSAGE_LOGIN
             } else {
-// console.log('asdf');
+
                 var session = req.session;
                 session.userId = response.userId;
                 session.isLoggedIn = true;
-// console.log(req.session)
+
+                responseObject.data.id = response.userId;
+                responseObject.data.isConfirmed = response.isConfirmed;
             }
             res.json(responseObject)
         })
