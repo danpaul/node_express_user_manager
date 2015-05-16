@@ -10,11 +10,12 @@ var STATUS_SUCCESS = 'success',
     ERROR_MESSAGE_SYSTEM = 'A system error occurred. Please try again.',
     FAILURE_MESSAGE_EMAIL = 'The email is not valid.',
     FAILURE_MESSAGE_LOGIN = 'Username or email is not correct.',
+    FAILURE_MESSAGE_NOT_LOGGED_IN = 'User is not logged in.',
     FAILURE_MESSAGE_PASSWORD = 'The password is not valid.';
 
 
 var _ = require('underscore'),
-        SqlLogin = require('sql_login')
+        SqlLogin = require('sql_login');
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -30,9 +31,6 @@ var handleDbResponse = function(err, errorMessage, res){
 }
 
 var defaults = {
-    headerView: function(){ return '' },
-    footerView: function(){ return '' },
-    // rootUrl: '/',
     tableName: 'sql_login',
     knex: null
 }
@@ -54,19 +52,8 @@ var getReponseObject = function(){
 
 module.exports = function(settings){
 
-    // if( !settings.secret ){ throw('sql_login_middleware requires secret') }
-
     var self = this;
     var app = require('express')();
-    // var session = require('express-session');
-    // var bodyParser = require('body-parser');
-    // app.use(session({
-    //     secret: settings.secret,
-    //     resave: true,
-    //     saveUninitialized: true
-    // }));
-    // app.use(bodyParser.json());
-    // app.use(bodyParser.urlencoded({extended: true}));
 
     self.passwordMinLength = 8;
 
@@ -99,11 +86,6 @@ module.exports = function(settings){
 
 *******************************************************************************/
 
-    // app.get('/login', function(req, res){
-    //     var body = require('./views/login_form')({rootUrl: self.rootUrl})
-    //     res.send(self.getHtml(body))
-    // })
-
     app.get('/is-logged-in', function(req, res){
         var sess = req.session;
         if( sess && sess.isLoggedIn ){
@@ -117,7 +99,7 @@ module.exports = function(settings){
 
         var email = req.body.email ? req.body.email : '',
             password = req.body.password ? req.body.password : '',
-            responseObject = getReponseObject()
+            responseObject = getReponseObject();
 
         self.sqlLogin.checkPassword({
             'email': email,
@@ -133,6 +115,7 @@ module.exports = function(settings){
 
                 var session = req.session;
                 session.userId = response.userId;
+                session.isConfirmed = response.isConfirmed;
                 session.isLoggedIn = true;
 
                 responseObject.data.id = response.userId;
@@ -142,10 +125,10 @@ module.exports = function(settings){
         })
     })
 
-    app.get('/register', function(req, res){
-        var body = require('./views/register_form')({rootUrl: self.rootUrl})
-        res.send(self.getHtml(body))
-    })
+    app.post('/logout', function(req, res){
+        req.session.destroy();
+        res.json(getReponseObject());
+    });
 
     app.post('/register', function(req, res){
         var email = req.body.email ? req.body.email : '';
@@ -176,6 +159,18 @@ module.exports = function(settings){
         });
     })
 
+    app.get('/', function(req, res){
+        var responseObject = getReponseObject();
+        if( !req.session || !req.session.isLoggedIn ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_NOT_LOGGED_IN;
+        } else {
+            responseObject.data.id = req.session.userId;
+            responseObject.data.isConfirmed = req.session.isConfirmed;
+        }
+        res.json(responseObject);
+    });
+
 /*******************************************************************************
 
                     HELPER FUNCTIONS
@@ -191,10 +186,6 @@ module.exports = function(settings){
         if( !password ){ return false; }
         if( password.length < self.passwordMinLength ){ return false; }
         return true;
-    }
-
-    self.getHtml = function(body){
-        return self.headerView() + body + self.footerView()
     }
 
     return app;
