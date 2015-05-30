@@ -12,10 +12,12 @@ var STATUS_SUCCESS = 'success',
     FAILURE_MESSAGE_LOGIN = 'Username or email is not correct.',
     FAILURE_MESSAGE_NOT_LOGGED_IN = 'User is not logged in.',
     FAILURE_MESSAGE_PASSWORD = 'The password is not valid.';
+    FAILURE_MESSAGE_USERNAME = 'The username can only contain letters, numbers, underscores, dots and dashes';
 
 
 var _ = require('underscore'),
-        SqlLogin = require('sql_login');
+    debug = require('debug')('sql_login_middleware'),
+    SqlLogin = require('sql_login');
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -32,7 +34,8 @@ var handleDbResponse = function(err, errorMessage, res){
 
 var defaults = {
     tableName: 'sql_login',
-    knex: null
+    knex: null,
+    usernameMinLength: 2
 }
 
 // message used for error message
@@ -56,6 +59,9 @@ module.exports = function(settings){
     var app = require('express')();
 
     self.passwordMinLength = 8;
+    self.useUsername = settings.useUsername ? true : false;
+
+    debug('Using username: ', self.useUsername);
 
     if( typeof(settings) === 'undefined' ){
         settings = {}
@@ -75,7 +81,8 @@ module.exports = function(settings){
 
     self.sqlLogin = new SqlLogin({
         'knex': self.knex,
-        'tableName': self.tableName
+        'tableName': self.tableName,
+        'useUsername': self.useUsername
     }, function(err){
         if( err ){ throw(err) }
     })
@@ -132,8 +139,11 @@ module.exports = function(settings){
 
     app.post('/register', function(req, res){
         var email = req.body.email ? req.body.email : '';
+        var username = req.body.username ? req.body.username : '';
         var password = req.body.password ? req.body.password : '';
         var responseObject = getReponseObject();
+
+        debug('Registering user ', email);
 
         if( !self.emailIsValid(email) ){
             responseObject.status = STATUS_FAILURE;
@@ -149,9 +159,23 @@ module.exports = function(settings){
             return;
         }
 
-        sqlLogin.create({'email': email, 'password': password},
+        if( !self.usernameIsValid(username) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_USERNAME;
+            res.json(responseObject);
+            return;
+        }
+
+        debug('Creating user ', email);
+        sqlLogin.create({
+                            'email': email,
+                            'password': password,
+                            'username': username
+                        },
                         function(err, response){
+
             if( err ){
+                debug(err);
                 responseObject.status = STATUS_ERROR;
                 responseObject.message = ERROR_MESSAGE_SYSTEM;
             }
@@ -186,6 +210,14 @@ module.exports = function(settings){
         if( !password ){ return false; }
         if( password.length < self.passwordMinLength ){ return false; }
         return true;
+    }
+
+    self.usernameIsValid = function(username){
+        debug('Validating username ', username);
+        if( username.length < self.usernameMinLength ){
+            return false;
+        }
+        return(/^([a-zA-Z0-9]|\-|\_|\.)+$/.test(username));
     }
 
     return app;
