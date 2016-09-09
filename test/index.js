@@ -28,7 +28,7 @@ var dbCreds = {
 var knex = require('knex')(dbCreds)
 
 var sqlLoginMiddleware = require('../index')({
-    rootUrl: 'http://localhost:3000',
+    rootUrl: 'http://localhost:3010',
     'knex': knex
 })
 

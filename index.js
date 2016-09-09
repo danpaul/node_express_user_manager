@@ -17,7 +17,8 @@ var STATUS_SUCCESS = 'success',
 
 var _ = require('underscore'),
     debug = require('debug')('sql_login_middleware'),
-    SqlLogin = require('sql_login');
+    SqlLogin = require('./lib/sql_login'),
+    templates = require('./templates');
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -102,6 +103,14 @@ module.exports = function(settings){
         }
     })
 
+    app.get('/login', function(req, res){
+        res.send(templates.login({rootUrl: settings.rootUrl}));
+    });
+
+    app.get('/register', function(req, res){
+        res.send(templates.register({rootUrl: settings.rootUrl}));
+    });
+
     app.post('/login', function(req, res){
 
         var email = req.body.email ? req.body.email : '',
@@ -132,12 +141,67 @@ module.exports = function(settings){
         })
     })
 
-    app.post('/logout', function(req, res){
+    app.all('/logout', function(req, res){
         req.session.destroy();
         res.json(getReponseObject());
     });
 
+    // app.post('/logout', function(req, res){
+    //     req.session.destroy();
+    //     res.json(getReponseObject());
+    // });
+
     app.post('/register', function(req, res){
+        var email = req.body.email ? req.body.email : '';
+        var username = req.body.username ? req.body.username : '';
+        var password = req.body.password ? req.body.password : '';
+        var responseObject = getReponseObject();
+
+console.log('email', email)
+console.log('username', username)
+console.log('password', password)
+
+        debug('Registering user ', email);
+
+        if( !self.emailIsValid(email) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_EMAIL;
+            res.json(responseObject);
+            return;
+        }
+
+        if( !self.passwordIsValid(password) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_PASSWORD;
+            res.json(responseObject);
+            return;
+        }
+
+        if( !self.usernameIsValid(username) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_USERNAME;
+            res.json(responseObject);
+            return;
+        }
+
+        debug('Creating user ', email);
+        sqlLogin.create({
+                            'email': email,
+                            'password': password,
+                            'username': username
+                        },
+                        function(err, response){
+
+            if( err ){
+                debug(err);
+                responseObject.status = STATUS_ERROR;
+                responseObject.message = ERROR_MESSAGE_SYSTEM;
+            }
+            res.json(response);
+        });
+    })
+
+    app.post('/api/register', function(req, res){
         var email = req.body.email ? req.body.email : '';
         var username = req.body.username ? req.body.username : '';
         var password = req.body.password ? req.body.password : '';
