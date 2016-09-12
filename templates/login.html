@@ -10,10 +10,19 @@
     <body>
         <div class="sql-login-middleware-wrap">
             <form method="POST" action="<%= rootUrl %>/login">
-                <label>Email:</label>
-                <input type="text" name="email" />
-                <label>Password:</label>
-                <input type="password" name="password" />
+                <div>
+                    <label>Email:</label>
+                    <input type="text" name="email" />
+                </div>
+                <div>
+                    <label>Password:</label>
+                    <input type="password" name="password" />
+                </div>
+                <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                    <div class="sql-login-error">
+                        <%= errorMessage %>
+                    </div>
+                <% } %>
                 <input type="submit" />
             </form>
         </div>

@@ -33,10 +33,13 @@ var handleDbResponse = function(err, errorMessage, res){
     }
 }
 
-var defaults = {
-    tableName: 'sql_login',
+const DEFAULTS = {
+    tableName: 'sql_user_auth',
     knex: null,
-    usernameMinLength: 2
+    usernameMinLength: 2,
+    requireTerms: false,
+    termsLink: '',
+    registerSuccesRedirect: ''
 }
 
 // message used for error message
@@ -50,7 +53,7 @@ var getReponseObject = function(){
 
 /*******************************************************************************
 
-                    MODULE
+                    SETUP
 
 *******************************************************************************/
 
@@ -68,16 +71,16 @@ module.exports = function(settings){
         settings = {}
     }
 
-    _.each(defaults, function(v, k){
+    _.each(DEFAULTS, function(v, k){
         if( typeof(settings[k]) !== 'undefined' ){
             self[k] = settings[k]
         } else {
-            self[k] = defaults[k]
+            self[k] = DEFAULTS[k]
         }
     })
 
     if( self.knex === null ){
-        throw(new Error('sql_login_middleware requires a knex object'))
+        throw(new Error('sq_user_auth requires a knex object'));
     }
 
     self.sqlLogin = new SqlLogin({
@@ -87,6 +90,107 @@ module.exports = function(settings){
     }, function(err){
         if( err ){ throw(err) }
     })
+
+/*******************************************************************************
+
+                    ROUTE FUNCTIONS
+
+*******************************************************************************/
+
+    var handleLogin = function(req, res, options){
+        var email = req.body.email ? req.body.email : '',
+            password = req.body.password ? req.body.password : '',
+            responseObject = getReponseObject();
+
+        self.sqlLogin.checkPassword({
+            'email': email,
+            'password': password
+        }, function(err, response){
+            if( err ){
+                responseObject.status = STATUS_ERROR
+                responseObject.message = ERROR_MESSAGE_SYSTEM
+            } else if( response.status !== STATUS_SUCCESS ){
+                responseObject.status = STATUS_FAILURE
+                responseObject.message = FAILURE_MESSAGE_LOGIN
+            } else {
+                loginUser(req, response, responseObject);
+            }
+            if( options.isApiRequest ){
+                res.json(responseObject);
+            } else {
+                if( responseObject.status !== STATUS_SUCCESS ){
+                    var d = {rootUrl: settings.rootUrl,
+                             errorMessage: responseObject.message};
+                    res.send(templates.login(d));
+                } else {
+                    // TODO: handle success
+                    res.json(responseObject);
+                }
+            }            
+        })
+    }
+
+    var handleRegister = function(req, res, options){
+        var email = req.body.email ? req.body.email : '';
+        var username = req.body.username ? req.body.username : '';
+        var password = req.body.password ? req.body.password : '';
+        var responseObject = getReponseObject();
+        debug('Registering user ', email);
+
+        if( !self.emailIsValid(email) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_EMAIL;
+        }
+        if( !self.passwordIsValid(password) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_PASSWORD;
+        }
+        if( !self.usernameIsValid(username) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_USERNAME;
+        }
+        if( responseObject.status !== STATUS_SUCCESS ){
+            if( options.isApiRequest ){ return res.json(responseObject); }
+            var d = {rootUrl: settings.rootUrl,
+                     errorMessage: responseObject.message}
+            return res.send(templates.register(d));
+        }
+        debug('Creating user ', email);
+        sqlLogin.create({
+                            'email': email,
+                            'password': password,
+                            'username': username
+                        },
+                        function(err, response){
+            if( err ){
+                debug(err);
+                responseObject.status = STATUS_ERROR;
+                responseObject.message = ERROR_MESSAGE_SYSTEM;
+            }
+            if( options.isApiRequest ){ return res.json(response); }
+            if( response.status !== STATUS_SUCCESS ){
+                var d = {rootUrl: settings.rootUrl,
+                         errorMessage: response.message}
+                return res.send(templates.register(d));
+            }
+            loginUser(req, response, responseObject);
+            // TODO: handle register success/redirect
+            return res.json(responseObject);
+        });
+    }
+
+    var loginUser = function(req, options, responseObject){
+        var session = req.session;
+        session.user = {};
+        session.user.id = options.userId;
+        session.user.isConfirmed = options.isConfirmed;
+        if( responseObject ){
+            responseObject.data.user = {
+                id: session.user.id,
+                isConfirmed: session.user.isConfirmed
+            }
+        }
+    }
 
 /*******************************************************************************
 
@@ -112,33 +216,11 @@ module.exports = function(settings){
     });
 
     app.post('/login', function(req, res){
+        handleLogin(req, res, {isApiRequest: false});
+    })
 
-        var email = req.body.email ? req.body.email : '',
-            password = req.body.password ? req.body.password : '',
-            responseObject = getReponseObject();
-
-        self.sqlLogin.checkPassword({
-            'email': email,
-            'password': password
-        }, function(err, response){
-            if( err ){
-                responseObject.status = STATUS_ERROR
-                responseObject.message = ERROR_MESSAGE_SYSTEM
-            } else if( response.status !== STATUS_SUCCESS ){
-                responseObject.status = STATUS_FAILURE
-                responseObject.message = FAILURE_MESSAGE_LOGIN
-            } else {
-
-                var session = req.session;
-                session.userId = response.userId;
-                session.isConfirmed = response.isConfirmed;
-                session.isLoggedIn = true;
-
-                responseObject.data.id = response.userId;
-                responseObject.data.isConfirmed = response.isConfirmed;
-            }
-            res.json(responseObject)
-        })
+    app.post('/api/login', function(req, res){
+        handleLogin(req, res, {isApiRequest: true});
     })
 
     app.all('/logout', function(req, res){
@@ -146,115 +228,22 @@ module.exports = function(settings){
         res.json(getReponseObject());
     });
 
-    // app.post('/logout', function(req, res){
-    //     req.session.destroy();
-    //     res.json(getReponseObject());
-    // });
-
     app.post('/register', function(req, res){
-        var email = req.body.email ? req.body.email : '';
-        var username = req.body.username ? req.body.username : '';
-        var password = req.body.password ? req.body.password : '';
-        var responseObject = getReponseObject();
-
-console.log('email', email)
-console.log('username', username)
-console.log('password', password)
-
-        debug('Registering user ', email);
-
-        if( !self.emailIsValid(email) ){
-            responseObject.status = STATUS_FAILURE;
-            responseObject.message = FAILURE_MESSAGE_EMAIL;
-            res.json(responseObject);
-            return;
-        }
-
-        if( !self.passwordIsValid(password) ){
-            responseObject.status = STATUS_FAILURE;
-            responseObject.message = FAILURE_MESSAGE_PASSWORD;
-            res.json(responseObject);
-            return;
-        }
-
-        if( !self.usernameIsValid(username) ){
-            responseObject.status = STATUS_FAILURE;
-            responseObject.message = FAILURE_MESSAGE_USERNAME;
-            res.json(responseObject);
-            return;
-        }
-
-        debug('Creating user ', email);
-        sqlLogin.create({
-                            'email': email,
-                            'password': password,
-                            'username': username
-                        },
-                        function(err, response){
-
-            if( err ){
-                debug(err);
-                responseObject.status = STATUS_ERROR;
-                responseObject.message = ERROR_MESSAGE_SYSTEM;
-            }
-            res.json(response);
-        });
+        handleRegister(req, res, {isApiRequest: false});
     })
 
     app.post('/api/register', function(req, res){
-        var email = req.body.email ? req.body.email : '';
-        var username = req.body.username ? req.body.username : '';
-        var password = req.body.password ? req.body.password : '';
-        var responseObject = getReponseObject();
-
-        debug('Registering user ', email);
-
-        if( !self.emailIsValid(email) ){
-            responseObject.status = STATUS_FAILURE;
-            responseObject.message = FAILURE_MESSAGE_EMAIL;
-            res.json(responseObject);
-            return;
-        }
-
-        if( !self.passwordIsValid(password) ){
-            responseObject.status = STATUS_FAILURE;
-            responseObject.message = FAILURE_MESSAGE_PASSWORD;
-            res.json(responseObject);
-            return;
-        }
-
-        if( !self.usernameIsValid(username) ){
-            responseObject.status = STATUS_FAILURE;
-            responseObject.message = FAILURE_MESSAGE_USERNAME;
-            res.json(responseObject);
-            return;
-        }
-
-        debug('Creating user ', email);
-        sqlLogin.create({
-                            'email': email,
-                            'password': password,
-                            'username': username
-                        },
-                        function(err, response){
-
-            if( err ){
-                debug(err);
-                responseObject.status = STATUS_ERROR;
-                responseObject.message = ERROR_MESSAGE_SYSTEM;
-            }
-            res.json(response);
-        });
+        handleRegister(req, res, {isApiRequest: true});
     })
 
     app.get('/', function(req, res){
         var responseObject = getReponseObject();
-        if( !req.session || !req.session.isLoggedIn ){
+        if( !req.session || !req.session.user || !req.session.user.id ){
             responseObject.status = STATUS_FAILURE;
             responseObject.message = FAILURE_MESSAGE_NOT_LOGGED_IN;
         } else {
-            responseObject.data.id = req.session.userId;
-            responseObject.data.isConfirmed = req.session.isConfirmed;
+            responseObject.data.id = req.session.user.id;
+            responseObject.data.isConfirmed = req.session.user.isConfirmed;
         }
         res.json(responseObject);
     });
