@@ -79,10 +79,12 @@
                     document.getElementById('emailError').style.display = "block";
                     error++;
                 }
-                if(!validateCheckbox('accept')){
-                    document.getElementById('termsError').style.display = "block";
-                    error++;
-                }
+                <% if( requireTerms ){ %>
+                    if(!validateCheckbox('accept')){
+                        document.getElementById('termsError').style.display = "block";
+                        error++;
+                    }
+                <% } %>
                 if(!validatePassword(document.getElementById('password').value)){
                     error++;
                 }
@@ -97,7 +99,7 @@
         </script>
     </head>
     <body>
-        <form class="sql-user-auth-form sql-user-auth-register" method="POST" action="<%= rootUrl %>/register">
+        <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/register">
             <div class="sql-user-auth-input-wrap">
                 <label for="username">Username</label>
                 <input type="text" name="username" id="username" onblur="validateUsername(name)" />
@@ -118,16 +120,18 @@
                 <input type="password" name="confirmPassword" id="confirmPassword" onblur="validateConfirmPassword()" />
                 <span id="confirmPasswordErrror" style="display: none;">Password fields do not match</span>
             </div>
-            <div class="sql-user-auth-input-wrap">
-                <label for="terms">Terms and Conditions</label>
-                <ul>
-                    <li>
-                        <input type="checkbox" name="terms" id="accept" value="accept" onblur="validateCheckbox(id)" />
-                        <label for="accept">Accept our <a href="#">Terms and Conditions</a></label>
-                    </li>
-                </ul>
-                <span class="validateError" id="termsError" style="display: none;">You need to accept our terms and conditions</span>
-            </div>
+            <% if( requireTerms ){ %>
+                <div class="sql-user-auth-input-wrap">
+                    <label for="terms">Terms and Conditions</label>
+                    <ul>
+                        <li>
+                            <input type="checkbox" name="terms" id="accept" value="accept" onblur="validateCheckbox(id)" />
+                            <label for="accept">Accept our <a href="#">Terms and Conditions</a></label>
+                        </li>
+                    </ul>
+                    <span class="validateError" id="termsError" style="display: none;">You need to accept our terms and conditions</span>
+                </div>
+            <% } %>
             <% if( typeof(errorMessage) !== 'undefined' ){ %>
                 <div class="sql-user-auth-error">
                     <%= errorMessage %>

@@ -152,7 +152,9 @@ module.exports = function(settings){
         if( responseObject.status !== STATUS_SUCCESS ){
             if( options.isApiRequest ){ return res.json(responseObject); }
             var d = {rootUrl: settings.rootUrl,
-                     errorMessage: responseObject.message}
+                     errorMessage: responseObject.message,
+                     requireTerms: settings.requireTerms,
+                     termsLink: settings.termsLink}
             return res.send(templates.register(d));
         }
         debug('Creating user ', email);
@@ -170,7 +172,9 @@ module.exports = function(settings){
             if( options.isApiRequest ){ return res.json(response); }
             if( response.status !== STATUS_SUCCESS ){
                 var d = {rootUrl: settings.rootUrl,
-                         errorMessage: response.message}
+                         errorMessage: response.message,
+                         requireTerms: settings.requireTerms,
+                         termsLink: settings.termsLink}
                 return res.send(templates.register(d));
             }
             loginUser(req, response, responseObject);
@@ -198,21 +202,15 @@ module.exports = function(settings){
 
 *******************************************************************************/
 
-    app.get('/is-logged-in', function(req, res){
-        var sess = req.session;
-        if( sess && sess.isLoggedIn ){
-            res.json(true);
-        } else {
-            res.json(false);
-        }
-    })
-
     app.get('/login', function(req, res){
         res.send(templates.login({rootUrl: settings.rootUrl}));
     });
 
     app.get('/register', function(req, res){
-        res.send(templates.register({rootUrl: settings.rootUrl}));
+        var d = {rootUrl: settings.rootUrl,
+                 requireTerms: settings.requireTerms,
+                 termsLink: settings.termsLink};
+        res.send(templates.register(d));
     });
 
     app.post('/login', function(req, res){
@@ -226,6 +224,7 @@ module.exports = function(settings){
     app.all('/logout', function(req, res){
         req.session.destroy();
         res.json(getReponseObject());
+        // TODO, redirect to login form if not api
     });
 
     app.post('/register', function(req, res){

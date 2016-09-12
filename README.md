@@ -10,7 +10,11 @@ See test file (./test/index.js) for example usage.
 
 ## Todo
 
-Login after registration
-Make terms conditional
-Add success register and success login and logout redirect options
-Add password verification and password reset ability
+* Login after registration
+* Add front end validation to login
+* Make terms conditional
+* Add success register and success login and logout redirect options
+* Add email verification
+* Add email password reset
+* Add email resend verification
+* Make backend password validation match front end
