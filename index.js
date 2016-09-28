@@ -91,6 +91,27 @@ module.exports = function(settings){
         if( err ){ throw(err) }
     })
 
+    // expose direct access
+    app.sqlLogin = self.sqlLogin;
+
+/*******************************************************************************
+
+                    DIRECT ACCESS METHODS
+
+*******************************************************************************/
+
+    /**
+     * Gets user by id. Passes back null if user not found
+     * @param  {int}  options.userId
+     */
+//     self.getUser = function(options, callback){
+// console.log('asdf 10')
+//         var id = parseInt(options.userId);
+//         if( !id ){ return callback(new Error('Invalid id')); }
+// console.log('asdf 11')
+//         sqlLogin.getUser(callback);
+//     }
+
 /*******************************************************************************
 
                     ROUTE FUNCTIONS
