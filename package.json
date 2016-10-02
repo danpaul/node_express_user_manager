@@ -22,6 +22,8 @@
     "express": "^4.14.0",
     "express-session": "^1.11.1",
     "knex": "^0.7.6",
-    "mysql": "^2.11.1"
+    "mysql": "^2.11.1",
+    "nodemailer": "^2.6.4",
+    "nodemailer-smtp-transport": "^2.7.2"
   }
 }

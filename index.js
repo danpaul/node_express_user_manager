@@ -44,7 +44,9 @@ const DEFAULTS = {
     usernameMinLength: 2,
     requireTerms: false,
     termsLink: '',
-    registerSuccesRedirect: ''
+    registerSuccesRedirect: '',
+    transporter: null,
+    siteName: null
 }
 
 // message used for error message
@@ -86,6 +88,14 @@ module.exports = function(settings){
 
     if( self.knex === null ){
         throw(new Error('sq_user_auth requires a knex object'));
+    }
+
+    if( !self.transporter ){
+        throw(new Error('sq_user_auth requires a Nodemailer transporter'));
+    }
+
+    if( !self.siteName ){
+        throw(new Error('sq_user_auth requires a siteName'));
     }
 
     self.sqlLogin = new SqlLogin({
@@ -302,29 +312,79 @@ module.exports = function(settings){
                      errorMessage: 'Email address is not valid'};
             return res.send(templates.reset(d));
         }
-console.log('asdf 1')
         this.sqlLogin.getResetCode(req.body.email, function(err, resp){
-console.log('asdf 2')
             if( err ){
                 console.log(err);
                 var d = {rootUrl: settings.rootUrl,
                          errorMessage: 'An error occurred, please try again'};
                 return res.send(templates.reset(d));
             }
-console.log(resp);
+
             if( resp.status !== 'success' || !resp.resetCode ){
-                // hide failures (user does not exist)
                 return res.send(templates.resetConfirmation());
             }
-console.log('asdf 3')
-            // send email
-        })
 
-        // res.send(templates.resetConfirmation());
-        // create token and save on user
+            var resetUrl = settings.rootUrl + '/password-reset-claim/' + resp.user.id + '/' + resp.resetCode;
+            var templateData = {
+                resetUrl: resetUrl
+            }
+            var host = req.get('host');
+            var body = templates.emailConfirmation(templateData);
+            var emailData = {
+                from: ('noreply@' + host) ,
+                to: resp.user.email,
+                subject: (settings.siteName + ': Password Reset'),
+                html: body
+            }
 
-        // send email to user
-    })
+            transporter.sendMail(emailData, function(err, info){
+                if(err){
+                    console.log(error);
+                    var d = {rootUrl: settings.rootUrl,
+                             errorMessage: 'An error occurred, please try again'};
+                    return res.send(templates.reset(d));
+                }
+                return res.send(templates.resetConfirmation());
+            });
+        });
+    });
+
+    app.get('/password-reset-claim/:userId/:resetCode', function(req, res){
+        var d = {rootUrl: settings.rootUrl,
+                 userId: req.params.userId,
+                 resetCode: req.params.resetCode};
+        return res.send(templates.resetForm(d));
+    });
+
+    app.post('/password-reset-claim', function(req, res){
+        if( !req.body ||
+            !req.body.userId ||
+            !req.body.resetCode ||
+            !req.body.password ){
+
+            var d = {rootUrl: settings.rootUrl,
+                     errorMessage: 'Data is not valid'};
+            return res.send(templates.reset(d));
+        }
+        this.sqlLogin.resetPasswordWithCode(req.body.userId,
+                                            req.body.resetCode,
+                                            req.body.password,
+                                            function(err, response){
+
+            if( err ){
+                var d = {rootUrl: settings.rootUrl,
+                         errorMessage: 'An error occurred, please try again'};
+                return res.send(templates.reset(d));
+            }
+            if( response.status !== 'success' ){
+                var d = {rootUrl: settings.rootUrl,
+                         errorMessage: response.message};
+                return res.send(templates.reset(d));
+            }
+            var d = {message: 'You password has been updated!'};
+            return res.send(templates.message(d));
+        });
+    });
 
 /*******************************************************************************
 

@@ -1,7 +1,14 @@
 var _ = require('underscore');
 var fs = require('fs');
 
-const TEMPLATES = ['login', 'register', 'reset', 'resetConfirmation'];
+const TEMPLATES = ['login',
+				   'register',
+				   'reset',
+				   'resetConfirmation',
+				   'emailConfirmation',
+				   'resetForm',
+				   'message'];
+
 var templates = {};
 
 TEMPLATES.forEach(function(t){
