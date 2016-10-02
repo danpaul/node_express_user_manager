@@ -10,3 +10,6 @@ Thumbs.db
 
 # Packages
 /node_modules
+
+# Testing config
+/secret.js

@@ -4,21 +4,22 @@
 
 *******************************************************************************/
 
-var STATUS_SUCCESS = 'success',
-    STATUS_ERROR = 'error',
-    STATUS_FAILURE = 'failure',
-    ERROR_MESSAGE_SYSTEM = 'A system error occurred. Please try again.',
-    FAILURE_MESSAGE_EMAIL = 'The email is not valid.',
-    FAILURE_MESSAGE_LOGIN = 'Username or email is not correct.',
-    FAILURE_MESSAGE_NOT_LOGGED_IN = 'User is not logged in.',
-    FAILURE_MESSAGE_PASSWORD = 'The password is not valid.';
-    FAILURE_MESSAGE_USERNAME = 'The username can only contain letters, numbers, underscores, dots and dashes';
+var STATUS_SUCCESS = 'success';
+var STATUS_ERROR = 'error';
+var STATUS_FAILURE = 'failure';
+var ERROR_MESSAGE_SYSTEM = 'A system error occurred. Please try again.';
+var FAILURE_MESSAGE_EMAIL = 'The email is not valid.';
+var FAILURE_MESSAGE_LOGIN = 'Username or email is not correct.';
+var FAILURE_MESSAGE_NOT_LOGGED_IN = 'User is not logged in.';
+var FAILURE_MESSAGE_PASSWORD = 'The password is not valid.';
+var FAILURE_MESSAGE_USERNAME = 'The username can only contain letters, numbers, underscores, dots and dashes';
+var FAILURE_MESSAGE_MISSING_PARAMS = 'Required data is missing';
 
 
-var _ = require('underscore'),
-    debug = require('debug')('sql_login_middleware'),
-    SqlLogin = require('./lib/sql_login'),
-    templates = require('./templates');
+var _ = require('underscore');
+var debug = require('debug')('sql_login_middleware');
+var SqlLogin = require('./lib/sql_login');
+var templates = require('./templates');
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -31,6 +32,10 @@ var handleDbResponse = function(err, errorMessage, res){
     } else {
         res.json(responseObject)
     }
+}
+
+var isLoggedIn = function(req){
+    return( req.session && req.session.user && req.session.user.id );
 }
 
 const DEFAULTS = {
@@ -93,24 +98,6 @@ module.exports = function(settings){
 
     // expose direct access
     app.sqlLogin = self.sqlLogin;
-
-/*******************************************************************************
-
-                    DIRECT ACCESS METHODS
-
-*******************************************************************************/
-
-    /**
-     * Gets user by id. Passes back null if user not found
-     * @param  {int}  options.userId
-     */
-//     self.getUser = function(options, callback){
-// console.log('asdf 10')
-//         var id = parseInt(options.userId);
-//         if( !id ){ return callback(new Error('Invalid id')); }
-// console.log('asdf 11')
-//         sqlLogin.getUser(callback);
-//     }
 
 /*******************************************************************************
 
@@ -250,15 +237,48 @@ module.exports = function(settings){
 
     app.post('/register', function(req, res){
         handleRegister(req, res, {isApiRequest: false});
-    })
+    });
 
     app.post('/api/register', function(req, res){
         handleRegister(req, res, {isApiRequest: true});
-    })
+    });
+
+    // untested, should be get so can email
+    app.post('/api/confirm-password', function(req, res){
+        var responseObject = getReponseObject();
+        if( !isLoggedIn(req) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_NOT_LOGGED_IN;
+            return res.json(responseObject);
+        }
+
+        if( !req.body ||
+            !req.body.email ||
+            !_.isString(req.body.email) ||
+            !req.body.token ||
+            !_.isString(req.body.token) ){
+
+            responseObject.status = STATUS_FAILURE;
+            responseObject.errorMessage = FAILURE_MESSAGE_MISSING_PARAMS;
+            return res.json(responseObject);
+        }
+
+        this.sqlLogin.confirmUser(req.body.email,
+                                  req.body.token,
+                                  function(err, resp){
+            if( err ){
+                console.log(err);
+                responseObject.status = STATUS_ERROR;
+                responseObject.errorMessage = ERROR_MESSAGE_SYSTEM;
+                return res.json(responseObject);
+            }
+            return res.json(resp);
+        });
+    });
 
     app.get('/', function(req, res){
         var responseObject = getReponseObject();
-        if( !req.session || !req.session.user || !req.session.user.id ){
+        if( !isLoggedIn(req) ){
             responseObject.status = STATUS_FAILURE;
             responseObject.message = FAILURE_MESSAGE_NOT_LOGGED_IN;
         } else {
@@ -267,6 +287,44 @@ module.exports = function(settings){
         }
         res.json(responseObject);
     });
+
+    app.get('/password-reset', function(req, res){
+        var d = {rootUrl: settings.rootUrl,
+                 errorMessage: ''};
+        res.send(templates.reset(d));
+    })
+
+    app.post('/password-reset', function(req, res){
+        if( !req.body.email ||
+            !this.emailIsValid(req.body.email) ){
+
+            var d = {rootUrl: settings.rootUrl,
+                     errorMessage: 'Email address is not valid'};
+            return res.send(templates.reset(d));
+        }
+console.log('asdf 1')
+        this.sqlLogin.getResetCode(req.body.email, function(err, resp){
+console.log('asdf 2')
+            if( err ){
+                console.log(err);
+                var d = {rootUrl: settings.rootUrl,
+                         errorMessage: 'An error occurred, please try again'};
+                return res.send(templates.reset(d));
+            }
+console.log(resp);
+            if( resp.status !== 'success' || !resp.resetCode ){
+                // hide failures (user does not exist)
+                return res.send(templates.resetConfirmation());
+            }
+console.log('asdf 3')
+            // send email
+        })
+
+        // res.send(templates.resetConfirmation());
+        // create token and save on user
+
+        // send email to user
+    })
 
 /*******************************************************************************
 

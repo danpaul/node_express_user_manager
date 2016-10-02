@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Reset</title>
+        <script>
+            // Validate email
+            function validateEmail(email){ 
+                var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                if(re.test(email)){
+                    document.getElementById('email').style.background ='#ccffcc';
+                    document.getElementById('emailError').style.display = "none";
+                    return true;
+                }else{
+                    document.getElementById('email').style.background ='#e35152';
+                    return false;
+                }
+            }
+            function validateForm(){
+                // Set error catcher
+                var error = 0;
+                // Validate email
+                if(!validateEmail(document.getElementById('email').value)){
+                    document.getElementById('emailError').style.display = "block";
+                    error++;
+                }
+                // Don't submit form if there are errors
+                if(error > 0){
+                    return false;
+                }
+            }     
+        </script>
+    </head>
+    <body>
+        <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/password-reset">
+            <div class="sql-user-auth-input-wrap">
+                <label for="email">Email</label>
+                <input type="text" name="email" id="email" onblur="validateEmail(value)" />
+                <span id="emailError" style="display: none;">You must enter a valid email address</span>
+            </div>
+            <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                <div class="sql-user-auth-error">
+                    <%= errorMessage %>
+                </div>
+            <% } %>
+            <div>
+                <input type="submit" id="submit" name="submit" value="Submit" />
+            </div>
+        </form>
+    </body>
+</html>
