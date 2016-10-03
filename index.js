@@ -15,9 +15,7 @@ var FAILURE_MESSAGE_PASSWORD = 'The password is not valid.';
 var FAILURE_MESSAGE_USERNAME = 'The username can only contain letters, numbers, underscores, dots and dashes';
 var FAILURE_MESSAGE_MISSING_PARAMS = 'Required data is missing';
 
-
 var _ = require('underscore');
-var debug = require('debug')('sql_login_middleware');
 var SqlLogin = require('./lib/sql_login');
 var templates = require('./templates');
 
@@ -48,6 +46,8 @@ var getUserId = function(req){
 const DEFAULTS = {
     tableName: 'sql_user_auth',
     knex: null,
+    manageSessions: true,
+    sessionSecret: null, // required if middleware is managing session
     usernameMinLength: 2,
     requireTerms: false,
     termsLink: '',
@@ -79,8 +79,6 @@ module.exports = function(settings){
     self.passwordMinLength = 8;
     self.useUsername = settings.useUsername ? true : false;
 
-    debug('Using username: ', self.useUsername);
-
     if( typeof(settings) === 'undefined' ){
         settings = {}
     }
@@ -105,15 +103,38 @@ module.exports = function(settings){
         throw(new Error('sq_user_auth requires a siteName'));
     }
 
+    if( self.manageSessions ){
+        if( !self.sessionSecret ){
+            throw(new Error('sq_user_auth requires a sessionSecret'));
+        }
+        var session = require('express-session');
+        var KnexSessionStore = require('connect-session-knex')(session);
+        const store = new KnexSessionStore({
+            knex: self.knex,
+            tablename: self.tableName + '_sessions'
+        });
+
+        app.use(session({
+            secret: self.sessionSecret,
+            // cookie: {
+            //     maxAge: 10000 // ten seconds, for testing
+            // },
+            store: store
+        }));
+
+
+    }
+
+
     self.sqlLogin = new SqlLogin({
         'knex': self.knex,
         'tableName': self.tableName,
         'useUsername': self.useUsername
     }, function(err){
         if( err ){ throw(err) }
-    })
+    });
 
-    // expose direct access
+    // expose direct access to controller
     app.sqlLogin = self.sqlLogin;
 
 /*******************************************************************************
@@ -160,7 +181,6 @@ module.exports = function(settings){
         var username = req.body.username ? req.body.username : '';
         var password = req.body.password ? req.body.password : '';
         var responseObject = getReponseObject();
-        debug('Registering user ', email);
 
         if( !self.emailIsValid(email) ){
             responseObject.status = STATUS_FAILURE;
@@ -182,7 +202,7 @@ module.exports = function(settings){
                      termsLink: settings.termsLink}
             return res.send(templates.register(d));
         }
-        debug('Creating user ', email);
+
         sqlLogin.create({
                             'email': email,
                             'password': password,
@@ -190,7 +210,7 @@ module.exports = function(settings){
                         },
                         function(err, response){
             if( err ){
-                debug(err);
+                console.log(err);
                 responseObject.status = STATUS_ERROR;
                 responseObject.message = ERROR_MESSAGE_SYSTEM;
             }
@@ -487,7 +507,6 @@ module.exports = function(settings){
     }
 
     self.usernameIsValid = function(username){
-        debug('Validating username ', username);
         if( username.length < self.usernameMinLength ){
             return false;
         }

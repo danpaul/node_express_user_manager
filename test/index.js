@@ -2,7 +2,7 @@ var app = require('express')()
 
 var knex = require('knex')
 var bodyParser = require('body-parser')
-var session = require('express-session')
+// var session = require('express-session')
 
 var secret = require('../secret');
 
@@ -26,17 +26,19 @@ var knex = require('knex')(dbCreds)
 
 var sqlLoginMiddleware = require('../index')({
     rootUrl: 'http://localhost:3010',
-    'knex': knex,
+    knex: knex,
     transporter: transporter,
-    siteName: 'Test Site'
-})
+    siteName: 'Test Site',
+    sessionSecret: 'super duper secret'
+});
 
-app.use(require('cookie-parser')('super-secret')); 
-app.use(session({
-    secret: 'super-secret',
-    resave: true,
-    saveUninitialized: true
-}));
+// app.use(require('cookie-parser')('super-secret')); 
+// app.use(session({
+//     secret: 'super-secret',
+//     resave: true,
+//     saveUninitialized: true
+// }));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
