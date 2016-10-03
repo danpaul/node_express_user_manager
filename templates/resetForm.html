@@ -4,25 +4,6 @@
         <meta charset="utf-8">
         <title>Register</title>
         <script>
-            function validateUsername(x){
-                // Validation rule
-                var re = /[A-Za-z-_]$/;
-                var value = document.getElementById(x).value;
-                // Check input
-                if(re.test(value) && value.length > 1){
-                    // Style green
-                    document.getElementById(x).style.background ='#ccffcc';
-                    // Hide error prompt
-                    document.getElementById(x + 'Error').style.display = "none";
-                    return true;
-                }else{
-                    // Style red
-                    document.getElementById(x).style.background ='#e35152';
-                    // Show error prompt
-                    document.getElementById(x + 'Error').style.display = "block";
-                    return false; 
-                }
-            }
             function validatePassword(password){
                 var re = /^(?=.*[A-Za-z])(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$/;
                 if( re.test(password) ){

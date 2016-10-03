@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Resend Confirmation</title>
+    </head>
+    <body>
+        <form class="sql-user-auth-form sql-user-auth-register" method="POST" action="<%= rootUrl %>/confirm-resend">
+            <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                <div class="sql-user-auth-error">
+                    <%= errorMessage %>
+                </div>
+            <% } %>
+            <div>
+                <input type="submit" id="submit" name="submit" value="Resend Confirmation" />
+            </div>
+        </form>
+    </body>
+</html>

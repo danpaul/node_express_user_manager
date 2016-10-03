@@ -35,7 +35,14 @@ var handleDbResponse = function(err, errorMessage, res){
 }
 
 var isLoggedIn = function(req){
-    return( req.session && req.session.user && req.session.user.id );
+    return( req && req.session && req.session.user && req.session.user.id );
+}
+
+var getUserId = function(req){
+    if( req && req.session && req.session.user && req.session.user.id ){
+        return req.session.user.id;
+    }
+    return null;
 }
 
 const DEFAULTS = {
@@ -321,7 +328,7 @@ module.exports = function(settings){
             }
 
             if( resp.status !== 'success' || !resp.resetCode ){
-                return res.send(templates.resetConfirmation());
+                return res.send(templates.resetPassword());
             }
 
             var resetUrl = settings.rootUrl + '/password-reset-claim/' + resp.user.id + '/' + resp.resetCode;
@@ -329,7 +336,7 @@ module.exports = function(settings){
                 resetUrl: resetUrl
             }
             var host = req.get('host');
-            var body = templates.emailConfirmation(templateData);
+            var body = templates.emailPasswordReset(templateData);
             var emailData = {
                 from: ('noreply@' + host) ,
                 to: resp.user.email,
@@ -344,7 +351,7 @@ module.exports = function(settings){
                              errorMessage: 'An error occurred, please try again'};
                     return res.send(templates.reset(d));
                 }
-                return res.send(templates.resetConfirmation());
+                return res.send(templates.resetPassword());
             });
         });
     });
@@ -383,6 +390,82 @@ module.exports = function(settings){
             }
             var d = {message: 'You password has been updated!'};
             return res.send(templates.message(d));
+        });
+    });
+
+    app.get('/confirm/:userId/:confirmCode', function(req, res){
+        if( !isLoggedIn(req) ){
+            return res.send(templates.login({rootUrl: settings.rootUrl,
+                                             errorMessage: 'Please login before confirming'}));
+        }
+        var userId = Number(req.params.userId);
+        if( !userId || userId !== getUserId(req) ){
+            return res.send(templates.login({rootUrl: settings.rootUrl,
+                                             errorMessage: 'User ID is invalid'}));
+        }
+        this.sqlLogin.confirmUser(userId,
+                                  req.params.confirmCode,
+                                  function(err, resp){
+            if( err ){
+                // Todo
+                console.log(err);
+                return res.send(templates.message({message: 'An error occured, please try again'}));
+                return;
+            }
+            
+            if( resp.status === 'success' ){
+                var message = 'Thanks, your email address is now confirmed!';
+                return res.send(templates.message({message: message}));
+            } else {
+                return res.send(templates.message({message: resp.message}));
+            }
+            
+        })
+    });
+
+    app.get('/confirm-resend', function(req, res){
+        if( !isLoggedIn(req) ){
+            return res.send(templates.login({rootUrl: settings.rootUrl,
+                                             errorMessage: 'Please login first'}));
+        }
+        return res.send(templates.resendConfirmation({rootUrl: settings.rootUrl}));
+    });
+
+    app.post('/confirm-resend', function(req, res){
+        var userId = getUserId(req);
+        if( !userId ){
+            return res.send(templates.login({rootUrl: settings.rootUrl,
+                                             errorMessage: 'Please login first'}));
+        }
+
+        this.sqlLogin.getUser(userId, function(err, user){
+            if( err ){
+                console.log(err);
+                var message = 'An error occurred, please try again';
+                return res.send(templates.resendConfirmation({rootUrl: settings.rootUrl, errorMessage: message}));
+            }
+            var confirmUrl = settings.rootUrl + '/confirm/' + userId + '/' + user.confirmation_token;
+            var templateData = {
+                confirmUrl: confirmUrl
+            }
+            var host = req.get('host');
+            var body = templates.emailConfirmation(templateData);
+            var emailData = {
+                from: ('noreply@' + host) ,
+                to: user.email,
+                subject: (settings.siteName + ': Please Confirm'),
+                html: body
+            }
+            // send email
+            transporter.sendMail(emailData, function(err, info){
+                if(err){
+                    console.log(error);
+                    var d = {rootUrl: settings.rootUrl,
+                             errorMessage: 'An error occurred, please try again'};
+                    return res.send(templates.resendConfirmation(d));
+                }
+                return res.send(templates.message({message: 'Please check your email to confirm your account'}));
+            });
         });
     });
 

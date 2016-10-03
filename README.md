@@ -10,11 +10,25 @@ See test file (./test/index.js) for example usage.
 
 ## Todo
 
+* after reset token claimed, should be deleted from DB
+* Password confirmation
+* Resend password confirmation
+* refactor
 * Login after registration
 * Add front end validation to login
+* add optional session management
+	* https://www.npmjs.com/package/connect-session-knex
+* add documentation
+
+* Setup PW reset link
+* Add base styling
+* Success redirect, success redirect via param?
+* 
 * Make terms conditional
 * Add success register and success login and logout redirect options
 * Add email verification
 * Add email password reset
 * Add email resend verification
 * Make backend password validation match front end
+
+* Brute force check

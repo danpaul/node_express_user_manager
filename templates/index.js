@@ -4,8 +4,10 @@ var fs = require('fs');
 const TEMPLATES = ['login',
 				   'register',
 				   'reset',
-				   'resetConfirmation',
+				   'resetPassword',
+				   'resendConfirmation',
 				   'emailConfirmation',
+				   'emailPasswordReset',
 				   'resetForm',
 				   'message'];
 
