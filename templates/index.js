@@ -11,11 +11,17 @@ const TEMPLATES = ['login',
 				   'resetForm',
 				   'message'];
 
-var templates = {};
-
-TEMPLATES.forEach(function(t){
-	var file = fs.readFileSync(__dirname + '/' + t + '.html').toString();
-	templates[t] = _.template(file);
-})
-
-module.exports = templates;
+module.exports = function(options){
+	var templates = this.templates = {};
+	TEMPLATES.forEach(function(t){
+		var file = fs.readFileSync(__dirname + '/' + t + '.html').toString();
+		templates[t] = _.template(file);
+	});
+	this.get = function(templateName, data){
+		if( !this.templates[templateName] ){
+			console.log(new Error('Unknown tempate: ' + templateName));
+			return '';
+		}
+		return (this.templates[templateName])(data);
+	}
+};

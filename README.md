@@ -23,7 +23,6 @@ See test file (./test/index.js) for example usage.
 * Setup PW reset link
 * Add base styling
 * Success redirect, success redirect via param?
-* 
 * Make terms conditional
 * Add success register and success login and logout redirect options
 * Add email verification
@@ -31,4 +30,5 @@ See test file (./test/index.js) for example usage.
 * Add email resend verification
 * Make backend password validation match front end
 
+* add api/non-api routes for all
 * Brute force check

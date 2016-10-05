@@ -9,6 +9,9 @@
     </head>
     <body>
         <div class="sql-login-middleware-wrap">
+            <div class="sql-login-middleware-register-wrap">
+                <a href="<%= rootUrl %>/register">Register</a>                
+            </div>
             <form method="POST" action="<%= rootUrl %>/login">
                 <div>
                     <label>Email:</label>
@@ -24,6 +27,9 @@
                     </div>
                 <% } %>
                 <input type="submit" />
+                <div class="sql-login-middleware-forgot-password-wrap">
+                    <a href="<%= rootUrl %>/password-reset">Reset Password</a>
+                </div>
             </form>
         </div>
     </body>

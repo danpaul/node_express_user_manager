@@ -17,7 +17,7 @@ var FAILURE_MESSAGE_MISSING_PARAMS = 'Required data is missing';
 
 var _ = require('underscore');
 var SqlLogin = require('./lib/sql_login');
-var templates = require('./templates');
+var templates = new(require('./templates'))();
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -46,8 +46,10 @@ var getUserId = function(req){
 const DEFAULTS = {
     tableName: 'sql_user_auth',
     knex: null,
+    loginSuccessRedirect: null,
     manageSessions: true,
     sessionSecret: null, // required if middleware is managing session
+    sessionExpiration: 1000 * 60 * 60 * 8,
     usernameMinLength: 2,
     requireTerms: false,
     termsLink: '',
@@ -116,23 +118,18 @@ module.exports = function(settings){
 
         app.use(session({
             secret: self.sessionSecret,
-            // cookie: {
-            //     maxAge: 10000 // ten seconds, for testing
-            // },
+            cookie: {
+                maxAge: self.sessionExpiration
+            },
             store: store
         }));
-
-
     }
-
 
     self.sqlLogin = new SqlLogin({
         'knex': self.knex,
         'tableName': self.tableName,
         'useUsername': self.useUsername
-    }, function(err){
-        if( err ){ throw(err) }
-    });
+    }, function(err){ if( err ){ throw(err) } });
 
     // expose direct access to controller
     app.sqlLogin = self.sqlLogin;
@@ -167,10 +164,13 @@ module.exports = function(settings){
                 if( responseObject.status !== STATUS_SUCCESS ){
                     var d = {rootUrl: settings.rootUrl,
                              errorMessage: responseObject.message};
-                    res.send(templates.login(d));
+                    res.send(templates.get('login', d));
                 } else {
-                    // TODO: handle success
-                    res.json(responseObject);
+                    if( self.loginSuccessRedirect ){
+                        return res.redirect(self.loginSuccessRedirect);
+                    } else {
+                        return res.json(responseObject);
+                    }
                 }
             }            
         })
@@ -200,7 +200,7 @@ module.exports = function(settings){
                      errorMessage: responseObject.message,
                      requireTerms: settings.requireTerms,
                      termsLink: settings.termsLink}
-            return res.send(templates.register(d));
+            return res.send(templates.get('register', d));
         }
 
         sqlLogin.create({
@@ -220,11 +220,15 @@ module.exports = function(settings){
                          errorMessage: response.message,
                          requireTerms: settings.requireTerms,
                          termsLink: settings.termsLink}
-                return res.send(templates.register(d));
+                return res.send(templates.get('register', d));
             }
             loginUser(req, response, responseObject);
             // TODO: handle register success/redirect
-            return res.json(responseObject);
+            if( self.loginSuccessRedirect ){
+                return res.redirect(self.loginSuccessRedirect);
+            } else {
+                return res.json(responseObject);
+            }
         });
     }
 
@@ -247,29 +251,45 @@ module.exports = function(settings){
 
 *******************************************************************************/
 
+    app.get('/api', function(req, res){
+        var responseObject = getReponseObject();
+        if( !isLoggedIn(req) ){
+            responseObject.status = STATUS_FAILURE;
+            responseObject.message = FAILURE_MESSAGE_NOT_LOGGED_IN;
+        } else {
+            responseObject.data.id = req.session.user.id;
+            responseObject.data.isConfirmed = req.session.user.isConfirmed;
+        }
+        res.json(responseObject);
+    });
+
     app.get('/login', function(req, res){
-        res.send(templates.login({rootUrl: settings.rootUrl}));
+        return res.send(templates.get('login', {rootUrl: settings.rootUrl}));
+    });
+
+    app.post('/api/login', function(req, res){
+        handleLogin(req, res, {isApiRequest: true});
+    })
+
+    app.post('/login', function(req, res){
+        handleLogin(req, res, {isApiRequest: false});
+    })
+
+    app.all('/logout', function(req, res){
+        req.session.destroy();
+        res.redirect(settings.rootUrl + '/login');
+    });
+
+    app.all('/api/logout', function(req, res){
+        req.session.destroy();
+        res.json(getReponseObject());
     });
 
     app.get('/register', function(req, res){
         var d = {rootUrl: settings.rootUrl,
                  requireTerms: settings.requireTerms,
                  termsLink: settings.termsLink};
-        res.send(templates.register(d));
-    });
-
-    app.post('/login', function(req, res){
-        handleLogin(req, res, {isApiRequest: false});
-    })
-
-    app.post('/api/login', function(req, res){
-        handleLogin(req, res, {isApiRequest: true});
-    })
-
-    app.all('/logout', function(req, res){
-        req.session.destroy();
-        res.json(getReponseObject());
-        // TODO, redirect to login form if not api
+        return res.send(templates.get('register', d));
     });
 
     app.post('/register', function(req, res){
@@ -280,7 +300,6 @@ module.exports = function(settings){
         handleRegister(req, res, {isApiRequest: true});
     });
 
-    // untested, should be get so can email
     app.post('/api/confirm-password', function(req, res){
         var responseObject = getReponseObject();
         if( !isLoggedIn(req) ){
@@ -313,22 +332,10 @@ module.exports = function(settings){
         });
     });
 
-    app.get('/', function(req, res){
-        var responseObject = getReponseObject();
-        if( !isLoggedIn(req) ){
-            responseObject.status = STATUS_FAILURE;
-            responseObject.message = FAILURE_MESSAGE_NOT_LOGGED_IN;
-        } else {
-            responseObject.data.id = req.session.user.id;
-            responseObject.data.isConfirmed = req.session.user.isConfirmed;
-        }
-        res.json(responseObject);
-    });
-
     app.get('/password-reset', function(req, res){
         var d = {rootUrl: settings.rootUrl,
                  errorMessage: ''};
-        res.send(templates.reset(d));
+        return res.send(templates.get('reset', d));
     })
 
     app.post('/password-reset', function(req, res){
@@ -337,18 +344,18 @@ module.exports = function(settings){
 
             var d = {rootUrl: settings.rootUrl,
                      errorMessage: 'Email address is not valid'};
-            return res.send(templates.reset(d));
+            return res.send(templates.get('reset', d));
         }
         this.sqlLogin.getResetCode(req.body.email, function(err, resp){
             if( err ){
                 console.log(err);
                 var d = {rootUrl: settings.rootUrl,
                          errorMessage: 'An error occurred, please try again'};
-                return res.send(templates.reset(d));
+                return res.send(templates.get('reset', d));
             }
 
             if( resp.status !== 'success' || !resp.resetCode ){
-                return res.send(templates.resetPassword());
+                return res.send(templates.get('resetPassword'));
             }
 
             var resetUrl = settings.rootUrl + '/password-reset-claim/' + resp.user.id + '/' + resp.resetCode;
@@ -356,7 +363,8 @@ module.exports = function(settings){
                 resetUrl: resetUrl
             }
             var host = req.get('host');
-            var body = templates.emailPasswordReset(templateData);
+            var body = templates.get('emailPasswordReset', templateData);
+
             var emailData = {
                 from: ('noreply@' + host) ,
                 to: resp.user.email,
@@ -369,9 +377,9 @@ module.exports = function(settings){
                     console.log(error);
                     var d = {rootUrl: settings.rootUrl,
                              errorMessage: 'An error occurred, please try again'};
-                    return res.send(templates.reset(d));
+                    return res.send(templates.get('reset'));
                 }
-                return res.send(templates.resetPassword());
+                return res.send(templates.get('resetPassword'));
             });
         });
     });
@@ -380,7 +388,7 @@ module.exports = function(settings){
         var d = {rootUrl: settings.rootUrl,
                  userId: req.params.userId,
                  resetCode: req.params.resetCode};
-        return res.send(templates.resetForm(d));
+        return res.send(templates.get('resetForm', d));
     });
 
     app.post('/password-reset-claim', function(req, res){
@@ -391,7 +399,7 @@ module.exports = function(settings){
 
             var d = {rootUrl: settings.rootUrl,
                      errorMessage: 'Data is not valid'};
-            return res.send(templates.reset(d));
+            return res.send(templates.get('reset', d));
         }
         this.sqlLogin.resetPasswordWithCode(req.body.userId,
                                             req.body.resetCode,
@@ -401,75 +409,76 @@ module.exports = function(settings){
             if( err ){
                 var d = {rootUrl: settings.rootUrl,
                          errorMessage: 'An error occurred, please try again'};
-                return res.send(templates.reset(d));
+                return res.send(templates.get('reset', d));
             }
             if( response.status !== 'success' ){
                 var d = {rootUrl: settings.rootUrl,
                          errorMessage: response.message};
-                return res.send(templates.reset(d));
+                return res.send(templates.get('reset', d));
             }
             var d = {message: 'You password has been updated!'};
-            return res.send(templates.message(d));
+            return res.send(templates.get('message', d));
         });
     });
 
     app.get('/confirm/:userId/:confirmCode', function(req, res){
         if( !isLoggedIn(req) ){
-            return res.send(templates.login({rootUrl: settings.rootUrl,
-                                             errorMessage: 'Please login before confirming'}));
+            var d = {rootUrl: settings.rootUrl, errorMessage: 'Please login before confirming'}
+            return res.send(templates.get('login', d));
         }
         var userId = Number(req.params.userId);
         if( !userId || userId !== getUserId(req) ){
-            return res.send(templates.login({rootUrl: settings.rootUrl,
-                                             errorMessage: 'User ID is invalid'}));
+            var d = {rootUrl: settings.rootUrl, errorMessage: 'User ID is invalid'}
+            return res.send(templates.get('login', d));
         }
         this.sqlLogin.confirmUser(userId,
                                   req.params.confirmCode,
                                   function(err, resp){
             if( err ){
-                // Todo
                 console.log(err);
-                return res.send(templates.message({message: 'An error occured, please try again'}));
-                return;
+                return res.send(templates.get('message',
+                                              {message: 'An error occured, please try again'}));
             }
             
             if( resp.status === 'success' ){
-                var message = 'Thanks, your email address is now confirmed!';
-                return res.send(templates.message({message: message}));
+                return res.send(templates.get('message',
+                                              {message: 'Thanks, your email address is now confirmed!'}));
             } else {
-                return res.send(templates.message({message: resp.message}));
+                return res.send(templates.get('message',
+                                              {message: resp.message}));
             }
-            
         })
     });
 
     app.get('/confirm-resend', function(req, res){
         if( !isLoggedIn(req) ){
-            return res.send(templates.login({rootUrl: settings.rootUrl,
-                                             errorMessage: 'Please login first'}));
+            var d = {rootUrl: settings.rootUrl, errorMessage: 'Please login first'};
+            return res.send(templates.get('login', d));
         }
-        return res.send(templates.resendConfirmation({rootUrl: settings.rootUrl}));
+        return res.send(templates.get('resendConfirmation', {rootUrl: settings.rootUrl}));
     });
 
     app.post('/confirm-resend', function(req, res){
         var userId = getUserId(req);
         if( !userId ){
-            return res.send(templates.login({rootUrl: settings.rootUrl,
-                                             errorMessage: 'Please login first'}));
+            var d= {rootUrl: settings.rootUrl, errorMessage: 'Please login first'}
+            return res.send(templates.get('login', d));
         }
 
         this.sqlLogin.getUser(userId, function(err, user){
             if( err ){
                 console.log(err);
-                var message = 'An error occurred, please try again';
-                return res.send(templates.resendConfirmation({rootUrl: settings.rootUrl, errorMessage: message}));
+                var d = {rootUrl: settings.rootUrl,
+                         errorMessage: 'An error occurred, please try again'};
+                return res.send(templates.get('resendConfirmation', d));
             }
             var confirmUrl = settings.rootUrl + '/confirm/' + userId + '/' + user.confirmation_token;
             var templateData = {
                 confirmUrl: confirmUrl
             }
+
+            var body = templates.get('emailConfirmation', templateData);
             var host = req.get('host');
-            var body = templates.emailConfirmation(templateData);
             var emailData = {
                 from: ('noreply@' + host) ,
                 to: user.email,
@@ -482,9 +491,10 @@ module.exports = function(settings){
                     console.log(error);
                     var d = {rootUrl: settings.rootUrl,
                              errorMessage: 'An error occurred, please try again'};
-                    return res.send(templates.resendConfirmation(d));
+                    return templates.get('resendConfirmation', d);
                 }
-                return res.send(templates.message({message: 'Please check your email to confirm your account'}));
+                return templates.get('message',
+                                     {message: 'Please check your email to confirm your account'});
             });
         });
     });
@@ -494,7 +504,6 @@ module.exports = function(settings){
                     HELPER FUNCTIONS
 
 *******************************************************************************/
-    // http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
     self.emailIsValid = function(email){
         var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
         return re.test(email);
