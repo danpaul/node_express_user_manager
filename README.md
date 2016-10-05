@@ -10,6 +10,9 @@ See test file (./test/index.js) for example usage.
 
 ## Todo
 
+* password reset errors should take you back to original form
+* add link to login from register
+
 * after reset token claimed, should be deleted from DB
 * Password confirmation
 * Resend password confirmation

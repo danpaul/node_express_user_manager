@@ -22,19 +22,25 @@ var dbCreds = {
 
 var knex = require('knex')(dbCreds)
 
-var sqlLoginMiddleware = require('../index')({
-    rootUrl: 'http://localhost:3010',
+var sqlLoginMiddleware = require('../index')(app, {
+    rootUrl: 'http://localhost:3010/test',
     knex: knex,
     transporter: transporter,
     siteName: 'Test Site',
     sessionSecret: 'super duper secret',
-    loginSuccessRedirect: 'http://localhost:3010/'
+    loginSuccessRedirect: 'http://localhost:3010/test'
 });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use('/', sqlLoginMiddleware)
+app.use('/test', sqlLoginMiddleware);
+
+// asdf
+app.get('/foo', function(req, res){
+    console.log(req.session);
+    res.send('bar');
+})
 
 /*******************************************************************************
 

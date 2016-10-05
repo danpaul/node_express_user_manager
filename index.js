@@ -73,7 +73,7 @@ var getReponseObject = function(){
 
 *******************************************************************************/
 
-module.exports = function(settings){
+module.exports = function(parentApp, settings){
 
     var self = this;
     var app = require('express')();
@@ -116,7 +116,7 @@ module.exports = function(settings){
             tablename: self.tableName + '_sessions'
         });
 
-        app.use(session({
+        parentApp.use(session({
             secret: self.sessionSecret,
             cookie: {
                 maxAge: self.sessionExpiration
@@ -250,7 +250,6 @@ module.exports = function(settings){
                     ROUTES
 
 *******************************************************************************/
-
     app.get('/api', function(req, res){
         var responseObject = getReponseObject();
         if( !isLoggedIn(req) ){
