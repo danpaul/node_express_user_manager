@@ -36,11 +36,10 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/test', sqlLoginMiddleware);
 
-// asdf
-app.get('/foo', function(req, res){
-    console.log(req.session);
-    res.send('bar');
-})
+// app.get('/foo', function(req, res){
+//     console.log(req.session);
+//     res.send('bar');
+// })
 
 /*******************************************************************************
 
