@@ -3,8 +3,11 @@
     <head>
         <meta charset="utf-8">
         <title>Resend Confirmation</title>
+        <%= header %>
+        <%= userHeader %>
     </head>
     <body>
+        <%= bodyTop %>
         <form class="sql-user-auth-form sql-user-auth-register" method="POST" action="<%= rootUrl %>/confirm-resend">
             <% if( typeof(errorMessage) !== 'undefined' ){ %>
                 <div class="sql-user-auth-error">
@@ -15,5 +18,6 @@
                 <input type="submit" id="submit" name="submit" value="Resend Confirmation" />
             </div>
         </form>
+        <%= bodyBottom %>
     </body>
 </html>

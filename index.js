@@ -17,7 +17,6 @@ var FAILURE_MESSAGE_MISSING_PARAMS = 'Required data is missing';
 
 var _ = require('underscore');
 var SqlLogin = require('./lib/sql_login');
-var templates = new(require('./templates'))();
 
 var handleDbResponse = function(err, errorMessage, res){
 
@@ -76,7 +75,13 @@ var getReponseObject = function(){
 module.exports = function(parentApp, settings){
 
     var self = this;
-    var app = require('express')();
+
+    var express = require('express');
+    var app = express();
+
+    var templates = new(require('./templates'))(settings);
+
+    app.use(express.static('public'));
 
     self.passwordMinLength = 8;
     self.useUsername = settings.useUsername ? true : false;

@@ -44,8 +44,11 @@
                 }
             }     
         </script>
+        <%= header %>
+        <%= userHeader %>
     </head>
     <body>
+        <%= bodyTop %>
         <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/password-reset-claim">
             <div class="sql-user-auth-input-wrap">
                 <label for="password">Password</label>
@@ -68,5 +71,6 @@
                 <input type="submit" id="submit" name="submit" value="Submit" />
             </div>
         </form>
+        <%= bodyBottom %>
     </body>
 </html>

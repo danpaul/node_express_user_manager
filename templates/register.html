@@ -97,8 +97,11 @@
                 }
             }     
         </script>
+        <%= header %>
+        <%= userHeader %>
     </head>
     <body>
+        <%= bodyTop %>
         <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/register">
             <div class="sql-user-auth-input-wrap">
                 <label for="username">Username</label>
@@ -141,5 +144,6 @@
                 <input type="submit" id="submit" name="submit" value="Submit" />
             </div>
         </form>
+        <%= bodyBottom %>
     </body>
 </html>
