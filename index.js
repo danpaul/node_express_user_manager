@@ -359,7 +359,9 @@ module.exports = function(parentApp, settings){
             }
 
             if( resp.status !== 'success' || !resp.resetCode ){
-                return res.send(templates.get('resetPassword'));
+                var d = {rootUrl: settings.rootUrl,
+                         errorMessage: resp.message};
+                return res.send(templates.get('reset', d));
             }
 
             var resetUrl = settings.rootUrl + '/password-reset-claim/' + resp.user.id + '/' + resp.resetCode;
@@ -381,7 +383,7 @@ module.exports = function(parentApp, settings){
                     console.log(error);
                     var d = {rootUrl: settings.rootUrl,
                              errorMessage: 'An error occurred, please try again'};
-                    return res.send(templates.get('reset'));
+                    return res.send(templates.get('reset', d));
                 }
                 return res.send(templates.get('resetPassword'));
             });
