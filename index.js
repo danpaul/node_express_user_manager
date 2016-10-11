@@ -48,13 +48,18 @@ const DEFAULTS = {
     loginSuccessRedirect: null,
     manageSessions: true,
     sessionSecret: null, // required if middleware is managing session
-    sessionExpiration: 1000 * 60 * 60 * 8,
+    sessionExpiration: 1000 * 60 * 60 * 12,
     usernameMinLength: 2,
     requireTerms: false,
     termsLink: '',
     registerSuccesRedirect: '',
     transporter: null,
-    siteName: null
+    siteName: null,
+
+    // template options:
+    header: '',
+    bodyTop: '',
+    bodyBottom: ''
 }
 
 // message used for error message
@@ -360,7 +365,7 @@ module.exports = function(parentApp, settings){
 
             if( resp.status !== 'success' || !resp.resetCode ){
                 var d = {rootUrl: settings.rootUrl,
-                         errorMessage: resp.message};
+                         errorMessage: resp.error};
                 return res.send(templates.get('reset', d));
             }
 
