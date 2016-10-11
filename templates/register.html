@@ -102,48 +102,55 @@
     </head>
     <body>
         <%= bodyTop %>
-        <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/register">
-            <div class="sql-user-auth-input-wrap">
-                <label for="username">Username</label>
-                <input type="text" name="username" id="username" onblur="validateUsername(name)" />
-                <span id="usernameError" style="display: none;">Username must be at least two characters and can only contain alphabetic characters, dashes and underscores</span>
+        <div class="sql-login-middleware-wrap">
+            <div class="sql-login-middleware-inner-wrap">
+                <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/register">
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" onblur="validateUsername(name)" />
+                        <span class="sql-user-auth-error" id="usernameError" style="display: none;">Username must be at least two characters and can only contain alphabetic characters, dashes and underscores</span>
+                    </div>
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" onblur="validateEmail(value)" />
+                        <span class="sql-user-auth-error" id="emailError" style="display: none;">You must enter a valid email address</span>
+                    </div>
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" onblur="validatePassword(value)" />
+                        <span class="sql-user-auth-error" id="passwordErrror" style="display: none;">Password must be at least 8 characters and contain a special character</span>
+                    </div>
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" name="confirmPassword" id="confirmPassword" onblur="validateConfirmPassword()" />
+                        <span class="sql-user-auth-error" id="confirmPasswordErrror" style="display: none;">Password fields do not match</span>
+                    </div>
+                    <% if( requireTerms ){ %>
+                        <div class="sql-user-auth-input-wrap">
+                            <label for="terms">Terms and Conditions</label>
+                            <ul>
+                                <li>
+                                    <input type="checkbox" name="terms" id="accept" value="accept" onblur="validateCheckbox(id)" />
+                                    <label for="accept">Accept our <a href="#">Terms and Conditions</a></label>
+                                </li>
+                            </ul>
+                            <span class="sql-user-auth-error" class="validateError" id="termsError" style="display: none;">You need to accept our terms and conditions</span>
+                        </div>
+                    <% } %>
+                    <div>
+                        <input type="submit" id="submit" name="submit" value="Submit" />
+                    </div>
+                    <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                        <div class="sql-user-auth-error sql-user-auth-submit-error">
+                            <%= errorMessage %>
+                        </div>
+                    <% } %>
+                    <div class="sql-login-middleware-login-wrap">
+                        <a href="<%= rootUrl %>/login">Login</a>
+                    </div>
+                </form>
             </div>
-            <div class="sql-user-auth-input-wrap">
-                <label for="email">Email</label>
-                <input type="text" name="email" id="email" onblur="validateEmail(value)" />
-                <span id="emailError" style="display: none;">You must enter a valid email address</span>
-            </div>
-            <div class="sql-user-auth-input-wrap">
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password" onblur="validatePassword(value)" />
-                <span id="passwordErrror" style="display: none;">Password must be at least 8 characters and contain a special character</span>
-            </div>
-            <div class="sql-user-auth-input-wrap">
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" name="confirmPassword" id="confirmPassword" onblur="validateConfirmPassword()" />
-                <span id="confirmPasswordErrror" style="display: none;">Password fields do not match</span>
-            </div>
-            <% if( requireTerms ){ %>
-                <div class="sql-user-auth-input-wrap">
-                    <label for="terms">Terms and Conditions</label>
-                    <ul>
-                        <li>
-                            <input type="checkbox" name="terms" id="accept" value="accept" onblur="validateCheckbox(id)" />
-                            <label for="accept">Accept our <a href="#">Terms and Conditions</a></label>
-                        </li>
-                    </ul>
-                    <span class="validateError" id="termsError" style="display: none;">You need to accept our terms and conditions</span>
-                </div>
-            <% } %>
-            <% if( typeof(errorMessage) !== 'undefined' ){ %>
-                <div class="sql-user-auth-error">
-                    <%= errorMessage %>
-                </div>
-            <% } %>
-            <div>
-                <input type="submit" id="submit" name="submit" value="Submit" />
-            </div>
-        </form>
+        </div>
         <%= bodyBottom %>
     </body>
 </html>

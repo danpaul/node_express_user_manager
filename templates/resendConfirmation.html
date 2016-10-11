@@ -8,16 +8,20 @@
     </head>
     <body>
         <%= bodyTop %>
-        <form class="sql-user-auth-form sql-user-auth-register" method="POST" action="<%= rootUrl %>/confirm-resend">
-            <% if( typeof(errorMessage) !== 'undefined' ){ %>
-                <div class="sql-user-auth-error">
-                    <%= errorMessage %>
-                </div>
-            <% } %>
-            <div>
-                <input type="submit" id="submit" name="submit" value="Resend Confirmation" />
+        <div class="sql-login-middleware-wrap">
+            <div class="sql-login-middleware-inner-wrap">
+                <form class="sql-user-auth-form sql-user-auth-register" method="POST" action="<%= rootUrl %>/confirm-resend">
+                    <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                        <div class="sql-user-auth-error">
+                            <%= errorMessage %>
+                        </div>
+                    <% } %>
+                    <div>
+                        <input type="submit" id="submit" name="submit" value="Resend Confirmation" />
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
         <%= bodyBottom %>
     </body>
 </html>

@@ -1,0 +1,80 @@
+html, body{
+    height: 100%;
+}
+body{
+    margin: 0;
+    padding: 0;
+}
+.sql-login-middleware-wrap{
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    height: 100%;
+}
+.sql-login-middleware-inner-wrap{
+    width: 400px;
+-webkit-box-flex: 0;
+    -webkit-flex: none;
+    -ms-flex: none;
+    flex: none;
+    /*max-width: 50%;*/
+}
+input[type='email'], input[type='number'], input[type='password'], input[type='search'], input[type='tel'], input[type='text'], input[type='url'], textarea, select {
+    border-radius: 0;
+}
+input[type='email']:focus,
+input[type='number']:focus,
+input[type='password']:focus,
+input[type='search']:focus,
+input[type='tel']:focus,
+input[type='text']:focus,
+input[type='url']:focus,
+textarea:focus,
+select:focus {
+    background-color: #fff;
+    border-color: #000;
+    color: #000;
+}
+
+.button:focus, .button:hover, button:focus, button:hover, input[type='button']:focus, input[type='button']:hover, input[type='reset']:focus, input[type='reset']:hover, input[type='submit']:focus, input[type='submit']:hover{
+    background-color: #fff;
+    border-color: #000;
+    color: #000;
+}
+
+.button, button, input[type='button'], input[type='reset'], input[type='submit']{
+    background-color: #FFF;
+    border-color: #000;
+    color: #000;
+}
+
+.button:focus, .button:hover, button:focus, button:hover, input[type='button']:focus, input[type='button']:hover, input[type='reset']:focus, input[type='reset']:hover, input[type='submit']:focus, input[type='submit']:hover {
+    background-color: #eee;
+    border: 
+}
+
+.button, button, input[type='button'], input[type='reset'], input[type='submit']{
+    border-radius: 0;
+}
+select, select:focus {
+  background: none;
+  /*padding-right: 3.0rem;*/
+}
+.sql-user-auth-error{
+    color: #e35152;
+    font-size: 12px;
+    position: relative;
+    top: -12px;
+}
+.sql-user-auth-submit-error{
+    top: 0;
+}

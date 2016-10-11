@@ -35,21 +35,25 @@
     </head>
     <body>
         <%= bodyTop %>
-        <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/password-reset">
-            <div class="sql-user-auth-input-wrap">
-                <label for="email">Email</label>
-                <input type="text" name="email" id="email" onblur="validateEmail(value)" />
-                <span id="emailError" style="display: none;">You must enter a valid email address</span>
+        <div class="sql-login-middleware-wrap">
+            <div class="sql-login-middleware-inner-wrap">
+                <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/password-reset">
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" onblur="validateEmail(value)" />
+                        <span class="sql-user-auth-error" id="emailError" style="display: none;">You must enter a valid email address</span>
+                    </div>
+                    <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                        <div class="sql-user-auth-error">
+                            <%= errorMessage %>
+                        </div>
+                    <% } %>
+                    <div>
+                        <input type="submit" id="submit" name="submit" value="Submit" />
+                    </div>
+                </form>
             </div>
-            <% if( typeof(errorMessage) !== 'undefined' ){ %>
-                <div class="sql-user-auth-error">
-                    <%= errorMessage %>
-                </div>
-            <% } %>
-            <div>
-                <input type="submit" id="submit" name="submit" value="Submit" />
-            </div>
-        </form>
+        </div>
         <%= bodyBottom %>
     </body>
 </html>

@@ -39,30 +39,32 @@
     <body>
         <%= bodyTop %>
         <div class="sql-login-middleware-wrap">
-            <div class="sql-login-middleware-register-wrap">
-                <a href="<%= rootUrl %>/register">Register</a>                
-            </div>
-            <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/login">
-                <div class="sql-user-auth-input-wrap">
-                    <label for="email">Email</label>
-                    <input type="text" name="email" id="email" onblur="validateEmail(value)" />
-                    <span id="emailError" style="display: none;">You must enter a valid email address</span>
-                </div>
-                <div class="sql-user-auth-input-wrap">
-                    <label for="password">Password</label>
-                    <input type="password" name="password" id="password" onblur="validatePassword(value)" />
-                    <span id="passwordErrror" style="display: none;">Password must be at least 8 characters and contain a special character</span>
-                </div>
-                <% if( typeof(errorMessage) !== 'undefined' ){ %>
-                    <div class="sql-login-error">
-                        <%= errorMessage %>
+            <div class="sql-login-middleware-inner-wrap">
+                <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/login">
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" onblur="validateEmail(value)" />
+                        <span class="sql-user-auth-error" id="emailError" style="display: none;">You must enter a valid email address</span>
                     </div>
-                <% } %>
-                <input type="submit" id="submit" name="submit" value="Submit" />
-                <div class="sql-login-middleware-forgot-password-wrap">
-                    <a href="<%= rootUrl %>/password-reset">Reset Password</a>
-                </div>
-            </form>
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" onblur="validatePassword(value)" />
+                        <span class="sql-user-auth-error" id="passwordErrror" style="display: none;">Password must be at least 8 characters and contain a special character</span>
+                    </div>
+                    <input type="submit" id="submit" name="submit" value="Submit" />
+                    <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                        <div class="sql-user-auth-error sql-user-auth-submit-error">
+                            <%= errorMessage %>
+                        </div>
+                    <% } %>
+                    <div class="sql-login-middleware-login-wrap">
+                        <a href="<%= rootUrl %>/register">Register</a>                
+                    </div>
+                    <div class="sql-login-middleware-forgot-password-wrap">
+                        <a href="<%= rootUrl %>/password-reset">Forgot password?</a>
+                    </div>
+                </form>
+            </div>
         </div>
         <%= bodyBottom %>
     </body>

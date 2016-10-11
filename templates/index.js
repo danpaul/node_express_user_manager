@@ -33,6 +33,7 @@ module.exports = function(options){
 	var bodyBottom = options.bodyBottom ? options.bodyBottom : '';
 
 	this.get = function(templateName, data){
+		if( !data ){ data = {}; }
 		if( !this.templates[templateName] ){
 			console.log(new Error('Unknown tempate: ' + templateName));
 			return '';

@@ -49,28 +49,32 @@
     </head>
     <body>
         <%= bodyTop %>
-        <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/password-reset-claim">
-            <div class="sql-user-auth-input-wrap">
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password" onblur="validatePassword(value)" />
-                <span id="passwordErrror" style="display: none;">Password must be at least 8 characters and contain a special character</span>
+        <div class="sql-login-middleware-wrap">
+            <div class="sql-login-middleware-inner-wrap">
+                <form class="sql-user-auth-form sql-user-auth-register" method="POST" onsubmit="return validateForm()" action="<%= rootUrl %>/password-reset-claim">
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" onblur="validatePassword(value)" />
+                        <span class="sql-user-auth-error" id="passwordErrror" style="display: none;">Password must be at least 8 characters and contain a special character</span>
+                    </div>
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" name="confirmPassword" id="confirmPassword" onblur="validateConfirmPassword()" />
+                        <span class="sql-user-auth-error" id="confirmPasswordErrror" style="display: none;">Password fields do not match</span>
+                    </div>
+                    <input type="hidden" name="userId" value="<%= userId %>" />
+                    <input type="hidden" name="resetCode" value="<%= resetCode %>" />
+                    <div>
+                        <input type="submit" id="submit" name="submit" value="Submit" />
+                    </div>
+                    <% if( typeof(errorMessage) !== 'undefined' ){ %>
+                        <div class="sql-user-auth-error sql-user-auth-submit-error">
+                            <%= errorMessage %>
+                        </div>
+                    <% } %>
+                </form>
             </div>
-            <div class="sql-user-auth-input-wrap">
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" name="confirmPassword" id="confirmPassword" onblur="validateConfirmPassword()" />
-                <span id="confirmPasswordErrror" style="display: none;">Password fields do not match</span>
-            </div>
-            <input type="hidden" name="userId" value="<%= userId %>" />
-            <input type="hidden" name="resetCode" value="<%= resetCode %>" />
-            <% if( typeof(errorMessage) !== 'undefined' ){ %>
-                <div class="sql-user-auth-error">
-                    <%= errorMessage %>
-                </div>
-            <% } %>
-            <div>
-                <input type="submit" id="submit" name="submit" value="Submit" />
-            </div>
-        </form>
+        </div>
         <%= bodyBottom %>
     </body>
 </html>
