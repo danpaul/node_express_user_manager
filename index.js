@@ -86,7 +86,7 @@ module.exports = function(parentApp, settings){
 
     var templates = new(require('./templates'))(settings);
 
-    app.use(express.static('public'));
+    app.use('/', express.static(__dirname + '/public'));
 
     self.passwordMinLength = 8;
     self.useUsername = settings.useUsername ? true : false;
