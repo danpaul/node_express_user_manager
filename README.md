@@ -1,6 +1,6 @@
 ## About
 
-sql_user_manager is a complete drop-in middleware solution for user management. sql_user_manager is [Express](https://expressjs.com/) middleware and is compatible with any database supported by [Knex](http://knexjs.org/) SQL query builder (Postgres, MSSQL, MySQL, MariaDB, SQLite3, and Oracle). sql_user_manager also provides optional Knex backed session management via [connect-session-knex](https://github.com/llambda/connect-session-knex).
+sql_user_manager is a complete drop-in middleware solution for user management. sql_user_manager is [Express](https://expressjs.com/) middleware and is compatible with any database supported by [Knex](http://knexjs.org/) (Postgres, MSSQL, MySQL, MariaDB, SQLite3, and Oracle). sql_user_manager also provides optional Knex backed session management via [connect-session-knex](https://github.com/llambda/connect-session-knex).
 
 sql_user_manager supports the following featues:
 * Registration
@@ -50,7 +50,7 @@ var dbCreds = {
 
 var knex = require('knex')(dbCreds)
 
-var sqlLoginMiddleware = require('./index')(app, {
+var sqlLoginMiddleware = require('sql_user_manager')(app, {
     rootUrl: 'http://localhost:3010/test',
     knex: knex,
     transporter: transporter,
@@ -77,10 +77,13 @@ var server = app.listen(3010, function () {
 
 ### Session info
 
-After registration or login, session will include a user objection with a `user.id` property (you can check this to determin if the user is logged in)
+After registration or login, session will include a user object with a `user.id` property (you can check this to determin if the user is logged in)
 
 ### Initialization:
-`var sqlUserAuth = require('./path_to_module')(app, options);`
+
+`npm install sql_user_manager`
+
+`var sqlUserManager = require('sql_user_manager')(app, options);`
 
 ### Options
 
@@ -100,7 +103,7 @@ After registration or login, session will include a user objection with a `user.
 
 `options.termsLink` - optional - link for terms if `requireTerms` is used
 
-`options.tablename` - optional - defatuls to 'sql_user_auth'
+`options.tablename` - optional - defatuls to 'sql_user_manager'
 
 `options.transporter` - required - Nodemail transporter
 
@@ -108,11 +111,11 @@ After registration or login, session will include a user objection with a `user.
 
 ### Template Options
 
-`options.bodyBottom` - optional - string that gets injected at the bottom of the body on any sql_user_auth pages
+`options.bodyBottom` - optional - string that gets injected at the bottom of the body on any sql_user_manager pages
 
-`options.bodyTop` - optional - string that gets injected at the top of the body on any sql_user_auth pages
+`options.bodyTop` - optional - string that gets injected at the top of the body on any sql_user_manager pages
 
-`options.header` - optional - string that gets injected into the header of all sql_user_auth pages
+`options.header` - optional - string that gets injected into the header of all sql_user_manager pages
 
 ## Testing
 

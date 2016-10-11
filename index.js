@@ -43,7 +43,7 @@ var getUserId = function(req){
 }
 
 const DEFAULTS = {
-    tableName: 'sql_user_auth',
+    tableName: 'sql_user_manager',
     knex: null,
     loginSuccessRedirect: null,
     manageSessions: true,

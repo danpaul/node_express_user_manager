@@ -1,5 +1,5 @@
 {
-  "name": "sql_login_middleware",
+  "name": "sql_user_manager",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dan Breczinski <pt2323@gmail.com> (https://github.com/danpaul)",
-  "license": "ISC",
+  "license": "MIT",
+  "homepage": "https://github.com/danpaul/sql_user_manager",
   "dependencies": {
     "async": "^2.0.1",
     "base64url": "^2.0.0",
