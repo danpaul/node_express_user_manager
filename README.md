@@ -20,8 +20,8 @@ sql_user_manager supports the following featues:
 
 ![Password Reset](/lib/screenshots/password-reset.png?raw=true "Password Reset")
 
-## Depedencies
-sql_user_manager requires an initialized Knex object and an initialized (Nodemailer)[https://github.com/nodemailer/nodemailer] tansporter (to handle password resets and email confirmations).
+## Dependencies
+sql_user_manager requires an initialized Knex object and an initialized [Nodemailer](https://github.com/nodemailer/nodemailer) tansporter (to handle password resets and email confirmations).
 
 ## Example Usage
 
