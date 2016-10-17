@@ -1,3 +1,5 @@
+console.log('foo')
+
 var app = require('express')()
 
 var knex = require('knex')
@@ -35,11 +37,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/test', sqlLoginMiddleware);
-
-// app.get('/foo', function(req, res){
-//     console.log(req.session);
-//     res.send('bar');
-// })
 
 /*******************************************************************************
 
