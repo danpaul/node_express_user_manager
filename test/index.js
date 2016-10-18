@@ -1,5 +1,3 @@
-console.log('foo')
-
 var app = require('express')()
 
 var knex = require('knex')

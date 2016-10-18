@@ -122,7 +122,9 @@ After registration or login, session will include a user object with a `user.id`
 `node ./test/index.js`
 
 ## Todo
-
+* auto send email on register
+* recheck all dbAuth signatures
+* handle errors in login/register for non-api users
 * add brute force check
 * add optional terms checkbox and link for registration
 * add api routes for all existint routes
