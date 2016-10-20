@@ -64,7 +64,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/auth', sqlLoginMiddleware);
 
-var server = app.listen(3010, function () {
+var server = app.listen(80, function () {
     var host = server.address().address
     var port = server.address().port
 
