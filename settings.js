@@ -1,23 +1,27 @@
 var _ = require('underscore');
 
 const DEFAULTS = {
-    tableName: 'db_user_manager',
+    databaseName: null,
     knex: null,
     loginSuccessRedirect: null,
     manageSessions: true,
-    sessionSecret: null, // required if middleware is managing session
-    sessionExpiration: 1000 * 60 * 60 * 12,
-    usernameMinLength: 2,
-    requireTerms: false,
-    termsLink: '',
     registerSuccesRedirect: '',
-    transporter: null,
+    requireTerms: false,
+    rethinkConnection: null,
+    sessionExpiration: 1000 * 60 * 60 * 12,
+    sessionResave: false,
+    sessionSaveUninitialized: false,    
+    sessionSecret: null, // required if middleware is managing session    
     siteName: null,
+    tableName: 'db_user_manager',
+    termsLink: '',
+    transporter: null,
+    usernameMinLength: 2,
 
     // template options:
-    header: '',
+    bodyBottom: '',
     bodyTop: '',
-    bodyBottom: ''
+    header: '',
 }
 
 
@@ -30,8 +34,12 @@ module.exports = function(instance, settings){
         else { instance[k] = DEFAULTS[k] }
     })
 
-    if( instance.knex === null ){
-        throw(new Error('Missing knex object'));
+    if( instance.knex === null && instance.rethinkConnection === null ){
+        throw(new Error('Missing DB connection'));
+    }
+
+    if( instance.rethinkConnection && !instance.databaseName ){
+        throw(new Error('Missing `databaseName`'));
     }
 
     if( !instance.transporter ){
@@ -41,5 +49,4 @@ module.exports = function(instance, settings){
     if( !instance.siteName ){
         throw(new Error('Missing siteName'));
     }
-
 }

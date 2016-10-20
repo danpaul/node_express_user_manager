@@ -17,6 +17,7 @@
     "express-session": "^1.14.1",
     "express-session-rethinkdb": "^0.4.1",
     "rethinkdb": "^2.3.3",
+    "session-rethinkdb": "^2.0.0",
     "underscore": "^1.8.3",
     "validator": "^3.37.0"
   },

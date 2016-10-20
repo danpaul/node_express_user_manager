@@ -87,6 +87,8 @@ After registration or login, session will include a user object with a `user.id`
 
 ### Options
 
+`options.databaseName` - required if using RethinkDB
+
 `options.knex` - required - initialized Knex object
 
 `options.loginSuccessRedirect` - optional - url to redirect user to after successful login
@@ -95,11 +97,17 @@ After registration or login, session will include a user object with a `user.id`
 
 `options.registerSuccesRedirect` - optional - url to redirect user to after registration
 
+`options.rethinkConnection` - required if using RethinkDB
+
 `options.requireTerms` - optional - if true, registration will include a checkbox that user's are required to check indicating they agree to the terms
 
 `options.sessionSecret` - required if useing `manageSessions`
 
 `options.sessionExpiration` - optional - session expiration in ms, defaults to 12 hours
+
+`options.sessionSaveUninitialized` - optional - defaults to false
+
+`options.sessionResave` - optional - defaults to false
 
 `options.termsLink` - optional - link for terms if `requireTerms` is used
 
@@ -122,9 +130,6 @@ After registration or login, session will include a user object with a `user.id`
 `node ./test/index.js`
 
 ## Todo
-* auto send email on register
-* recheck all dbAuth signatures
-* handle errors in login/register for non-api users
-* add brute force check
+* send confirmation email on register
 * add optional terms checkbox and link for registration
-* add api routes for all existint routes
+* add api routes for all existing routes

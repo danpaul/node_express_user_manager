@@ -22,32 +22,65 @@ module.exports = function(parentApp, settings){
 
     this.passwordMinLength = 8;
     settingsInit(this, settings);
-
+console.log('asdf 1')
     if( this.manageSessions ){
         if( !this.sessionSecret ){
             throw(new Error('sq_user_auth requires a sessionSecret'));
         }
         var session = require('express-session');
-        var KnexSessionStore = require('connect-session-knex')(session);
-        const store = new KnexSessionStore({
-            knex: this.knex,
-            tablename: this.tableName + '_sessions'
-        });
+        if( this.knex ){            
+            var KnexSessionStore = require('connect-session-knex')(session);
+            var store = new KnexSessionStore({
+                knex: this.knex,
+                tablename: this.tableName + '_sessions'
+            });            
+        } else {
 
-        parentApp.use(session({
-            secret: this.sessionSecret,
-            cookie: {
-                maxAge: this.sessionExpiration
-            },
-            store: store
-        }));
+
+
+            // var RDBStore = require('express-session-rethinkdb')(session);
+            // var store = new RDBStore({connectOptions: this.rethinkConnection});
+
+
+
+var RDBStore = require('session-rethinkdb')(session);
+
+console.log(this.rethinkConnection);
+return;
+
+const store = new RDBStore(this.rethinkConnection,  {
+    // browserSessionsMaxAge: 5000, // optional, default is 60000 (60 seconds). Time between clearing expired sessions.
+    // table: 'session' // optional, default is 'session'. Table to store sessions in.
+});
+
+
+
+        }
+console.log(store)
+        // parentApp.use(session({
+        //     secret: this.sessionSecret,
+        //     cookie: {
+        //         maxAge: this.sessionExpiration
+        //     },
+        //     saveUninitialized: this.sessionSaveUninitialized,
+        //     resave: this.sessionResave,
+        //     store: store
+        // }));
     }
-
-    this.dbAuth = new DbAuth({
-        'knex': this.knex,
-        'tableName': this.tableName
-    }, function(err){ if( err ){ throw(err) } });
-
+console.log('asdf 2')
+    if( this.knex ){
+        this.dbAuth = new DbAuth({
+            'knex': this.knex,
+            'tableName': this.tableName
+        }, function(err){ if( err ){ throw(err) } });
+    } else {
+        this.dbAuth = new DbAuth({
+            'rethinkConnection': this.rethinkConnection,
+            'tableName': this.tableName,
+            'databaseName': this.databaseName
+        }, function(err){ if( err ){ throw(err) } });
+    }
+console.log('asdf 3')
     // expose direct access to controller
     app.dbAuth = this.dbAuth;
 
@@ -56,13 +89,16 @@ module.exports = function(parentApp, settings){
                                         templates: templates},
                                        settings);
 
+console.log('asdf 4')
+
 /*******************************************************************************
 
                     ROUTES
 
 *******************************************************************************/
+
     app.get('/api', function(req, res){
-console.log(req.session)
+console.log('asdfasdfasdf')
         if( !this.isLoggedIn(req) ){
             return res.json(response.get({errorCode: 'userNotLoggedIn'}));
         } else {
