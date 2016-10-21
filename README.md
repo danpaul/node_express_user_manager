@@ -7,7 +7,7 @@ node_express_user_manager supports the following featues:
 * Login
 * Logout
 * Brute force login prevention
-* Email Confirmation
+* Email confirmation(cofirms user's email)
 * Password reset
 * Session management(optional)
 
@@ -22,7 +22,7 @@ node_express_user_manager supports the following featues:
 ![Password Reset](/lib/screenshots/password-reset.png?raw=true "Password Reset")
 
 ## Dependencies
-node_express_user_manager requires an initialized Knex object or RethinkDB connection options and an initialized [Nodemailer](https://github.com/nodemailer/nodemailer) tansporter (to handle password resets and email confirmations).
+node_express_user_manager requires an initialized Knex object or RethinkDB connection configuration and an initialized [Nodemailer](https://github.com/nodemailer/nodemailer) tansporter (to handle password resets and email confirmations).
 
 ## Example Usage
 
