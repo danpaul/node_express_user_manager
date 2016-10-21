@@ -8,7 +8,6 @@ var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 
 var transporter = nodemailer.createTransport(smtpTransport(secret.smtp));
-var r = require('rethinkdb');
 
 var options = {
     rootUrl: 'http://localhost:3010/test',

@@ -50,19 +50,19 @@ var dbCreds = {
 
 var knex = require('knex')(dbCreds)
 
-var sqlLoginMiddleware = require('sql_user_manager')(app, {
-    rootUrl: 'http://localhost:3010/test',
+var userManager = require('sql_user_manager')(app, {
+    rootUrl: 'http://localhost:3010/user', // should match the middleware root
     knex: knex,
     transporter: transporter,
     siteName: 'Test Site',
     sessionSecret: 'super duper secret',
-    loginSuccessRedirect: 'http://localhost:3010/test'
+    loginSuccessRedirect: 'http://localhost:3010/success'
 });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use('/auth', sqlLoginMiddleware);
+app.use('/user', userManager);
 
 var server = app.listen(80, function () {
     var host = server.address().address
@@ -73,6 +73,32 @@ var server = app.listen(80, function () {
 
 ```
 
+### Example RehtinkDB config
+
+```
+var options = {
+    rootUrl: 'http://localhost:3010/user', // should match the middleware root
+    rethinkConnectionOptions: {
+        db: 'db_auth_test',
+        host: '127.0.0.1',
+        port: '28015'
+    },
+    databaseName: 'db_auth_test',
+    tableName: 'db_auth_test_table',
+    transporter: transporter,
+    siteName: 'Test Site',
+    sessionSecret: 'super duper secret',
+    loginSuccessRedirect: 'http://localhost:3010/success'
+}
+
+var userManager = require('../index')(app, options);
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.use('/user', userManager);
+```
+
 ## Documentation
 
 ### Session info
@@ -81,9 +107,9 @@ After registration or login, session will include a user object with a `user.id`
 
 ### Initialization:
 
-`npm install sql_user_manager`
+`npm install node_express_user_manager`
 
-`var sqlUserManager = require('sql_user_manager')(app, options);`
+`var userManager = require('node_express_user_manager')(app, options);`
 
 ### Options
 

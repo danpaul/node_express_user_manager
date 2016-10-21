@@ -37,7 +37,6 @@ module.exports = function(parentApp, settings){
             });            
         } else {
             var RDBStore = require('express-session-rethinkdb')(session);
-            // this.rethinkConnectionOptions.table = this.sessionTableName;
             var store = new RDBStore({connectOptions: this.rethinkConnectionOptions,
                                       table: this.sessionTableName});
         }

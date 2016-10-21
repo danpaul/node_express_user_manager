@@ -1,6 +1,6 @@
 {
-  "name": "sql_user_manager",
-  "version": "0.0.2",
+  "name": "node_express_user_manager",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "author": "Dan Breczinski <pt2323@gmail.com> (https://github.com/danpaul)",
   "license": "MIT",
-  "homepage": "https://github.com/danpaul/sql_user_manager",
+  "homepage": "https://github.com/danpaul/node_express_user_manager",
   "dependencies": {
     "async": "^2.0.1",
     "base64url": "^2.0.0",
@@ -17,7 +17,6 @@
     "express-session": "^1.14.1",
     "express-session-rethinkdb": "^0.4.1",
     "rethinkdb": "^2.3.3",
-    "session-rethinkdb": "^2.0.0",
     "underscore": "^1.8.3",
     "validator": "^3.37.0"
   },
