@@ -97,7 +97,7 @@ After registration or login, session will include a user object with a `user.id`
 
 `options.registerSuccesRedirect` - optional - url to redirect user to after registration
 
-`options.rethinkConnection` - required if using RethinkDB
+`options.rethinkConnectionOptions` - required if using RethinkDB - see [connection options](https://www.rethinkdb.com/docs/install-drivers/)javascript/
 
 `options.requireTerms` - optional - if true, registration will include a checkbox that user's are required to check indicating they agree to the terms
 

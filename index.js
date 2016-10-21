@@ -22,7 +22,8 @@ module.exports = function(parentApp, settings){
 
     this.passwordMinLength = 8;
     settingsInit(this, settings);
-console.log('asdf 1')
+    this.sessionTableName  = this.tableName + '_sessions';
+
     if( this.manageSessions ){
         if( !this.sessionSecret ){
             throw(new Error('sq_user_auth requires a sessionSecret'));
@@ -32,64 +33,55 @@ console.log('asdf 1')
             var KnexSessionStore = require('connect-session-knex')(session);
             var store = new KnexSessionStore({
                 knex: this.knex,
-                tablename: this.tableName + '_sessions'
+                tablename: this.sessionTableName
             });            
         } else {
-
-
-
-            // var RDBStore = require('express-session-rethinkdb')(session);
-            // var store = new RDBStore({connectOptions: this.rethinkConnection});
-
-
-
-var RDBStore = require('session-rethinkdb')(session);
-
-console.log(this.rethinkConnection);
-return;
-
-const store = new RDBStore(this.rethinkConnection,  {
-    // browserSessionsMaxAge: 5000, // optional, default is 60000 (60 seconds). Time between clearing expired sessions.
-    // table: 'session' // optional, default is 'session'. Table to store sessions in.
-});
-
-
-
+            var RDBStore = require('express-session-rethinkdb')(session);
+            // this.rethinkConnectionOptions.table = this.sessionTableName;
+            var store = new RDBStore({connectOptions: this.rethinkConnectionOptions,
+                                      table: this.sessionTableName});
         }
-console.log(store)
-        // parentApp.use(session({
-        //     secret: this.sessionSecret,
-        //     cookie: {
-        //         maxAge: this.sessionExpiration
-        //     },
-        //     saveUninitialized: this.sessionSaveUninitialized,
-        //     resave: this.sessionResave,
-        //     store: store
-        // }));
+
+        parentApp.use(session({
+            secret: this.sessionSecret,
+            cookie: {
+                maxAge: this.sessionExpiration
+            },
+            saveUninitialized: this.sessionSaveUninitialized,
+            resave: this.sessionResave,
+            store: store
+        }));
     }
-console.log('asdf 2')
+
     if( this.knex ){
         this.dbAuth = new DbAuth({
             'knex': this.knex,
             'tableName': this.tableName
         }, function(err){ if( err ){ throw(err) } });
+        this._finishSetup();
     } else {
-        this.dbAuth = new DbAuth({
-            'rethinkConnection': this.rethinkConnection,
-            'tableName': this.tableName,
-            'databaseName': this.databaseName
-        }, function(err){ if( err ){ throw(err) } });
+        var r = require('rethinkdb');
+        r.connect(this.rethinkConnectionOptions, function(err, conn) {
+            if (err){ throw err };
+            this.dbAuth = new DbAuth({
+                rethinkConnection: conn,
+                tableName: this.tableName,
+                databaseName: this.databaseName,
+                sessionTableName: this.sessionTableName,
+                manageSessions: this.manageSessions
+            }, function(err){ if( err ){ throw(err) } });
+            self._finishSetup();
+        });
     }
-console.log('asdf 3')
-    // expose direct access to controller
-    app.dbAuth = this.dbAuth;
 
-    this.routeHelper = new RouteHelper({dbAuth: this.dbAuth,
-                                        loginSuccessRedirect: this.loginSuccessRedirect,
-                                        templates: templates},
-                                       settings);
-
-console.log('asdf 4')
+    this._finishSetup = function(){
+        // expose direct access to controller
+        app.dbAuth = this.dbAuth;
+        self.routeHelper = new RouteHelper({dbAuth: self.dbAuth,
+                                            loginSuccessRedirect: self.loginSuccessRedirect,
+                                            templates: templates},
+                                           settings);
+    }
 
 /*******************************************************************************
 
@@ -98,7 +90,6 @@ console.log('asdf 4')
 *******************************************************************************/
 
     app.get('/api', function(req, res){
-console.log('asdfasdfasdf')
         if( !this.isLoggedIn(req) ){
             return res.json(response.get({errorCode: 'userNotLoggedIn'}));
         } else {

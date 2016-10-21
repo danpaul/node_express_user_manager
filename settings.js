@@ -7,7 +7,7 @@ const DEFAULTS = {
     manageSessions: true,
     registerSuccesRedirect: '',
     requireTerms: false,
-    rethinkConnection: null,
+    rethinkConnectionOptions: null, // https://www.rethinkdb.com/docs/install-drivers/javascript/
     sessionExpiration: 1000 * 60 * 60 * 12,
     sessionResave: false,
     sessionSaveUninitialized: false,    
@@ -34,11 +34,11 @@ module.exports = function(instance, settings){
         else { instance[k] = DEFAULTS[k] }
     })
 
-    if( instance.knex === null && instance.rethinkConnection === null ){
+    if( instance.knex === null && instance.rethinkConnectionOptions === null ){
         throw(new Error('Missing DB connection'));
     }
 
-    if( instance.rethinkConnection && !instance.databaseName ){
+    if( instance.rethinkConnectionOptions && !instance.databaseName ){
         throw(new Error('Missing `databaseName`'));
     }
 
