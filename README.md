@@ -1,11 +1,12 @@
 ## About
 
-sql_user_manager is a complete drop-in middleware solution for user management. sql_user_manager is [Express](https://expressjs.com/) middleware and is compatible with any database supported by [Knex](http://knexjs.org/) (Postgres, MSSQL, MySQL, MariaDB, SQLite3, and Oracle). sql_user_manager also provides optional Knex backed session management via [connect-session-knex](https://github.com/llambda/connect-session-knex).
+node_express_user_manager is a complete drop-in solution for user management. node_express_user_manager is [Express](https://expressjs.com/) middleware and is compatible with any database supported by [Knex](http://knexjs.org/) (Postgres, MSSQL, MySQL, MariaDB, SQLite3, and Oracle) or RethinkDB. node_express_user_manager also provides optional session management via [connect-session-knex](https://github.com/llambda/connect-session-knex) for SQL and [express-session-rethinkdb](https://github.com/llambda/session-rethinkdb) for RethinkDB.
 
-sql_user_manager supports the following featues:
+node_express_user_manager supports the following featues:
 * Registration
 * Login
 * Logout
+* Brute force login prevention
 * Email Confirmation
 * Password reset
 * Session management(optional)
@@ -21,7 +22,7 @@ sql_user_manager supports the following featues:
 ![Password Reset](/lib/screenshots/password-reset.png?raw=true "Password Reset")
 
 ## Dependencies
-sql_user_manager requires an initialized Knex object and an initialized [Nodemailer](https://github.com/nodemailer/nodemailer) tansporter (to handle password resets and email confirmations).
+node_express_user_manager requires an initialized Knex object or RethinkDB connection options and an initialized [Nodemailer](https://github.com/nodemailer/nodemailer) tansporter (to handle password resets and email confirmations).
 
 ## Example Usage
 
@@ -50,7 +51,7 @@ var dbCreds = {
 
 var knex = require('knex')(dbCreds)
 
-var userManager = require('sql_user_manager')(app, {
+var userManager = require('node_express_user_manager')(app, {
     rootUrl: 'http://localhost:3010/user', // should match the middleware root
     knex: knex,
     transporter: transporter,
@@ -135,21 +136,21 @@ After registration or login, session will include a user object with a `user.id`
 
 `options.sessionResave` - optional - defaults to false
 
-`options.termsLink` - optional - link for terms if `requireTerms` is used
+`options.siteName` - required - name of site
 
-`options.tablename` - optional - defatuls to 'sql_user_manager'
+`options.tablename` - optional - defatuls to 'node_express_user_manager'
+
+`options.termsLink` - optional - link for terms if `requireTerms` is used
 
 `options.transporter` - required - Nodemail transporter
 
-`options.siteName` - required - name of site
-
 ### Template Options
 
-`options.bodyBottom` - optional - string that gets injected at the bottom of the body on any sql_user_manager pages
+`options.bodyBottom` - optional - string that gets injected at the bottom of the body on any node_express_user_manager pages
 
-`options.bodyTop` - optional - string that gets injected at the top of the body on any sql_user_manager pages
+`options.bodyTop` - optional - string that gets injected at the top of the body on any node_express_user_manager pages
 
-`options.header` - optional - string that gets injected into the header of all sql_user_manager pages
+`options.header` - optional - string that gets injected into the header of all node_express_user_manager pages
 
 ## Testing
 
