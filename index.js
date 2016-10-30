@@ -24,6 +24,15 @@ module.exports = function(parentApp, settings){
     settingsInit(this, settings);
     this.sessionTableName  = this.tableName + '_sessions';
 
+    this._finishSetup = function(){
+        // expose direct access to controller
+        app.dbAuth = this.dbAuth;
+        self.routeHelper = new RouteHelper({dbAuth: self.dbAuth,
+                                            loginSuccessRedirect: self.loginSuccessRedirect,
+                                            templates: templates},
+                                           settings);
+    }
+
     if( this.manageSessions ){
         if( !this.sessionSecret ){
             throw(new Error('sq_user_auth requires a sessionSecret'));
@@ -57,7 +66,7 @@ module.exports = function(parentApp, settings){
             'knex': this.knex,
             'tableName': this.tableName
         }, function(err){ if( err ){ throw(err) } });
-        this._finishSetup();
+        self._finishSetup();
     } else {
         var r = require('rethinkdb');
         r.connect(this.rethinkConnectionOptions, function(err, conn) {
@@ -71,15 +80,6 @@ module.exports = function(parentApp, settings){
             }, function(err){ if( err ){ throw(err) } });
             self._finishSetup();
         });
-    }
-
-    this._finishSetup = function(){
-        // expose direct access to controller
-        app.dbAuth = this.dbAuth;
-        self.routeHelper = new RouteHelper({dbAuth: self.dbAuth,
-                                            loginSuccessRedirect: self.loginSuccessRedirect,
-                                            templates: templates},
-                                           settings);
     }
 
 /*******************************************************************************
@@ -132,6 +132,66 @@ module.exports = function(parentApp, settings){
 
     app.post('/api/register', function(req, res){
         routeHelper.handleRegister(req, res, {isApiRequest: true});
+    });
+
+    app.get('/profile', function(req, res){
+        var userId = this.getUserId(req);
+        if( !userId ){ return res.redirect(settings.rootUrl + '/login'); }
+        this.dbAuth.getUser({id: userId}, function(err, user){
+            if( err ){
+                console.log(err);
+                return res.redirect(settings.rootUrl + '/login');
+            }
+            var d = {rootUrl: settings.rootUrl,
+                     email: user.user.email,
+                     username: user.user.username};
+            res.send(templates.get('profile', d));
+        });
+    });
+
+    app.post('/profile', function(req, res){
+        var userId = this.getUserId(req);
+        if( !userId ){ return res.redirect(settings.rootUrl + '/login'); }
+        this.dbAuth.getUser({id: userId}, function(err, user){
+            if( err ){
+                console.log(err);
+                return res.redirect(settings.rootUrl + '/login');
+            }
+            var d = {rootUrl: settings.rootUrl,
+                     email: user.user.email,
+                     username: user.user.username};
+            if( req.body.email ){
+                this.dbAuth.updateEmail({id: userId, email: req.body.email}, function(err, resp){
+                    if( err ){
+                        console.log(err);
+                        d.emailError = 'An error occurred';
+                        return res.send(templates.get('profile', d));
+                    } else if( resp.error ) {
+                        d.emailError = resp.error;
+                        return res.send(templates.get('profile', d));
+                    } else {
+                        d.email = req.body.email;
+                        return res.send(templates.get('profile', d));
+                    }
+                });
+            } else if( req.body.username ){
+                this.dbAuth.updateUsername({id: userId, username: req.body.username}, function(err, resp){
+                    if( err ){
+                        console.log(err);
+                        d.usernameError = 'An error occurred';
+                        return res.send(templates.get('profile', d));
+                    } else if( resp.error ) {
+                        d.usernameError = resp.error;
+                        return res.send(templates.get('profile', d));
+                    } else {
+                        d.username = req.body.username;
+                        return res.send(templates.get('profile', d));
+                    }
+                });
+            } else {
+                return res.redirect(settings.rootUrl + '/profile');
+            }
+        });
     });
 
     app.get('/password-reset', function(req, res){
@@ -269,7 +329,7 @@ module.exports = function(parentApp, settings){
             return res.send(templates.get('login', d));
         }
 
-        this.dbAuth.getUser(userId, function(err, user){
+        this.dbAuth.getUser({id: userId}, function(err, user){
             if( err ){
                 console.log(err);
                 var d = {rootUrl: settings.rootUrl,

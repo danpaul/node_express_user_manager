@@ -2,6 +2,7 @@ var _ = require('underscore');
 var fs = require('fs');
 
 const TEMPLATES = ['login',
+				   'profile',
 				   'register',
 				   'reset',
 				   'resetPassword',

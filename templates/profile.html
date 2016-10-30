@@ -1,0 +1,105 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Profile</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script>
+            // Validate email
+            function validateEmail(email){ 
+                var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                if(re.test(email)){
+                    document.getElementById('email').style.background ='#ccffcc';
+                    document.getElementById('emailError').style.display = "none";
+                    return true;
+                }else{
+                    document.getElementById('email').style.background ='#e35152';
+                    return false;
+                }
+            }
+            function validateUsername(x){
+                // Validation rule
+                var re = /[A-Za-z-_]$/;
+                var value = document.getElementById(x).value;
+                // Check input
+                if(re.test(value) && value.length > 1){
+                    // Style green
+                    document.getElementById(x).style.background ='#ccffcc';
+                    // Hide error prompt
+                    document.getElementById(x + 'Error').style.display = "none";
+                    return true;
+                }else{
+                    // Style red
+                    document.getElementById(x).style.background ='#e35152';
+                    // Show error prompt
+                    document.getElementById(x + 'Error').style.display = "block";
+                    return false; 
+                }
+            }
+            function validateEmailForm(){
+                // Set error catcher
+                var error = 0;
+                // Validate email
+                if(!validateEmail(document.getElementById('email').value)){
+                    document.getElementById('emailError').style.display = "block";
+                    error++;
+                }
+                // Don't submit form if there are errors
+                if(error > 0){
+                    return false;
+                }
+            }
+            function validateUsernameForm(){
+                // Set error catcher
+                var error = 0;
+                // Check name
+                if(!validateUsername('username')){
+                    document.getElementById('usernameError').style.display = "block";
+                    error++;
+                }
+                // Don't submit form if there are errors
+                if(error > 0){
+                    return false;
+                }
+            }   
+        </script>
+        <%= header %>
+        <%= userHeader %>
+    </head>
+    <body>
+        <%= bodyTop %>
+        <div class="sql-login-middleware-wrap">
+            <div class="sql-login-middleware-inner-wrap">
+                <form class="sql-user-auth-form" method="POST" onsubmit="return validateEmailForm()" action="<%= rootUrl %>/profile">
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" value="<%= email %>" onblur="validateEmail(value)" />
+                        <span class="sql-user-auth-error" id="emailError" style="display: none;">You must enter a valid email address</span>
+                    </div>
+                    <input type="submit" id="submit" name="submit" value="Update Email" />
+                    <% if( typeof(emailErrorMessage) !== 'undefined' ){ %>
+                        <div class="sql-user-auth-error sql-user-auth-submit-error">
+                            <%= emailErrorMessage %>
+                        </div>
+                    <% } %>
+                </form>
+                <form class="sql-user-auth-form" method="POST" onsubmit="return validateUsernameForm()" action="<%= rootUrl %>/profile">
+                    <div class="sql-user-auth-input-wrap">
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" value="<%= username %>" onblur="validateUsername(name)" />
+                        <span class="sql-user-auth-error" id="usernameError" style="display: none;">Username must be at least two characters and can only contain alphabetic characters, dashes and underscores</span>
+                    </div>
+                    <input type="submit" id="submit" name="submit" value="Update Username" />
+                    <% if( typeof(usernameErrorMessage) !== 'undefined' ){ %>
+                        <div class="sql-user-auth-error sql-user-auth-submit-error">
+                            <%= usernameErrorMessage %>
+                        </div>
+                    <% } %>
+                </form>
+            </div>
+        </div>
+        <%= bodyBottom %>
+    </body>
+</html>
