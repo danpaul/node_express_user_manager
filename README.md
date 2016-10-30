@@ -152,11 +152,8 @@ After registration or login, session will include a user object with a `user.id`
 
 `options.header` - optional - string that gets injected into the header of all node_express_user_manager pages
 
-## Testing
-
-`node ./test/index.js`
-
 ## Todo
+* app profile update page
 * send confirmation email on register
 * add optional terms checkbox and link for registration
 * add api routes for all existing routes
