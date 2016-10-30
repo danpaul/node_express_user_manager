@@ -106,7 +106,7 @@ app.use('/user', userManager);
 
 ### Session info
 
-After registration or login, session will include a user object with a `user.id` property (you can check this to determin if the user is logged in)
+After registration or login, session will include a user object with a `user.id` property (you can check this to determine if the user is logged in)
 
 ### Initialization:
 
