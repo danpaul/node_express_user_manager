@@ -1,6 +1,6 @@
 {
   "name": "node_express_user_manager",
-  "version": "0.0.3",
+  "version": "0.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
